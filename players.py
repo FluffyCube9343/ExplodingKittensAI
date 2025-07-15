@@ -2,9 +2,6 @@ import random
 import numpy as np
 rng = np.random.default_rng()
 
-# randomlist = [int(i) for i in open('random256.txt').readlines()]
-# startind = random.randint(0,len(randomlist)//10)
-
 
 
 class Player: #RandomPlayer
@@ -59,111 +56,6 @@ class Player: #RandomPlayer
         return int(random.random()*(decklen+1))
         # return random.randint(0,decklen)
 
-    
-
-
-# class ARPlayer(Player): #AlternateRandomPlayeri
-#     def getMove(self, toDraw, movectr, turnctr, deckhandlens):
-#     #Return None = draw ONE card
-#         global startind
-#         startind += 1; startind %= 100000
-#         # print(startind)
-#         psbls = whatcaniplay(self.hand,self.name,deckhandlens)
-#         if(not psbls):
-#             return None
-#         else:
-#             playcard = randomlist[startind]%2
-#             if(not playcard):
-#                 return None
-#             else:
-#                 return psbls[randomlist[startind]%len(psbls)]
-#         # chosenmove = random.choice(psbls)
-
-# class CommonSensePlayer(Player): #CommonSensePlayer
-#     def __init__(self, name, hand):
-#         self.name = name
-#         self.hand = hand
-#         self.movehistory = {}
-#     def inform(self, player, move, moveData):
-#         pass
-#     def getMove(self, toDraw, movectr, turnctr, deckhandlens):
-#         #Return None = draw ONE card
-#         if(movectr not in self.movehistory): self.movehistory[movectr] = set()
-
-#         psbls = whatcaniplay(self.hand,self.name,deckhandlens)+[None]
-#         chosenmove = random.choice(psbls)
-
-#         if('STF' in self.movehistory[movectr]):
-#             while(chosenmove == 'STF'): 
-#                 # print('stf', chosenmove, self.hand)
-#                 chosenmove = random.choice(psbls)
-#         if('SHUF' in self.movehistory[movectr]):
-#             while(chosenmove == 'SHUF'): chosenmove = random.choice(psbls)
-#         # print(self.name, movectr, turnctr, chosenmove, self.hand)
-#         self.movehistory[movectr].add(chosenmove)
-#         return chosenmove
-#     def getFavored(self):
-#         index = random.randrange(len(self.hand))
-#         pickable = [i for i in self.hand if i!='DEF' and i!='FVR' and i!='NOPE']
-#         if(not pickable):
-#             if('NOPE' in self.hand): 
-#                 self.hand.remove('NOPE')
-#                 return 'NOPE'
-#             if('FVR' in self.hand): 
-#                 self.hand.remove('FVR')
-#                 return 'FVR'
-#             self.hand.remove('DEF')
-#             return 'DEF'
-            
-            
-#         chosen = pickable.pop(random.randrange(len(pickable)))
-#         self.hand.remove(chosen)
-#         return chosen
-#         # return self.hand.pop(random.randrange(len(self.hand)))
-
-# class RunningPlayer(CommonSensePlayer):
-#     def getMove(self, toDraw, movectr, turnctr, deckhandlens):
-#         global startind
-#         # startind += 1; startind %= 100000
-#         # playcard = randomlist[startind]%2
-#         # if(not playcard): return None
-#         # if(turnctr<15): return None
-#         if(turnctr<35 and self.hand.count('DEF')): return None
-#         # if(turnctr<20): return None
-#         handset = set(self.hand)
-#         if(movectr not in self.movehistory): self.movehistory[movectr] = set()
-
-#         psbls = whatcaniplay(self.hand,self.name,deckhandlens)+[None]
-#         if('FVR' in psbls): return 'FVR'
-#         if('C1' in psbls): return 'C1'
-#         if('C2' in psbls): return 'C2'
-#         if('C3' in psbls): return 'C3'
-#         if('C4' in psbls): return 'C4'
-#         if('C5' in psbls): return 'C5'
-
-#         if(toDraw > 1 and 'ATK' in psbls): return 'ATK'
-#         if(toDraw>1 and 'SKIP' in psbls): return 'SKIP'
-#         if(movectr>40 and 'ATK' in psbls): return 'ATK'
-#         if(movectr>40 and 'SKIP' in psbls): return 'SKIP'
-#         # catcards = [i for i in psbls if type(i)==str and i[0]=='C']
-#         # if(catcards): return catcards[0]
-
-
-
-#         chosenmove = random.choice(psbls)
-
-#         if('STF' in self.movehistory[movectr]):
-#             while(chosenmove == 'STF'): 
-#                 # print('stf', chosenmove, self.hand)
-#                 chosenmove = random.choice(psbls)
-#         if('SHUF' in self.movehistory[movectr]):
-#             while(chosenmove == 'SHUF'): chosenmove = random.choice(psbls)
-#         # print(self.name, movectr, turnctr, chosenmove, self.hand)
-#         self.movehistory[movectr].add(chosenmove)
-#         return chosenmove
-    
-#     def reinsertEK(self, decklen):
-#         return 1
 
 
 def weighted_random_choice(choices, weights):
