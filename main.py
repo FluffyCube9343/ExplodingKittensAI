@@ -58,7 +58,7 @@ def simulateGame(PLAYERS):
     while toDraw and len(players) > 1:
         move = 'skibidi'
         while move:
-            move = players[turn].getMove(toDraw, movectr, turnctr, [players[0].numCards, players[1].numCards]) or 0
+            move = players[turn].getMove(toDraw, len(deck), [p1stf,p2stf][turn], [players[0].numCards, players[1].numCards][turn^1]) or 0
 
             if turn == 0:
                 p1states.append([len(deck), toDraw] + p1stf + players[0].hand + [len(players[1].hand), move])

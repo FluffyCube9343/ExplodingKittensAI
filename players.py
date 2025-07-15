@@ -1,7 +1,11 @@
 import random
 import numpy as np
 rng = np.random.default_rng()
+import lmdb
+import pickle
 
+# Initialize LMDB environment (must match your existing path and map_size)
+states_env = lmdb.open("lmdb_states", map_size=int(1e9), readonly=True, lock=False)
 
 
 class Player: #RandomPlayer
@@ -22,7 +26,7 @@ class Player: #RandomPlayer
             elif(cardtaken >= 7 and self.hand[cardtaken]%2==0): self.numPlayable += 1
 
         
-    def getMove(self, toDraw, movectr, turnctr, deckhandlens):
+    def getMove(self, toDraw, lendeck, p1stf, deckhandlens):
         #Return None = draw ONE card
         chosenmove = giveRandomMove(self.hand,self.name,deckhandlens, self.numPlayable)
         if(chosenmove!=None): self.numPlayable -= 1
@@ -56,6 +60,35 @@ class Player: #RandomPlayer
         return int(random.random()*(decklen+1))
         # return random.randint(0,decklen)
 
+class MonteCarloPlayer(Player):
+
+    def getMove(self, toDraw, lendeck, p1stf, deckhandlens):
+        best_move = None
+        best_ratio = -1.0
+        
+        with states_env.begin() as txn:
+            for move in range(12):
+                state_key = [lendeck, toDraw] + p1stf + self.hand + [deckhandlens, move]
+                key_str = str(state_key).encode()
+
+                val = txn.get(key_str)
+                if val:
+                    record = pickle.loads(val)
+                    won = record.get("won", 0)
+                    total = record.get("total", 1)  # prevent division by zero
+                    ratio = won / total
+                else:
+                    ratio = 0
+
+                if ratio > best_ratio:
+                    best_ratio = ratio
+                    best_move = move
+            if(best_move!=None):
+                return best_move
+            else:
+                chosenmove = giveRandomMove(self.hand,self.name,deckhandlens, self.numPlayable)
+                if(chosenmove!=None): self.numPlayable -= 1
+                return chosenmove
 
 
 def weighted_random_choice(choices, weights):
@@ -79,7 +112,7 @@ def giveRandomMove(deck,name,deckhandlens,numPlayable,victim=None,includeNone=Tr
     possible = list(deck)
     possible[0] = 0
     possible[1] = 0
-    if deckhandlens[victim]:
+    if deckhandlens:
         possible[7] = possible[7]//2
         possible[8] = possible[8]//2
         possible[9] = possible[9]//2
