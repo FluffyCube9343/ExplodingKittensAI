@@ -46,6 +46,9 @@ def simulateGame(PLAYERS):
                     playerdecks[turn][move] -= 1
             
             if(not move): continue
+
+            toNope = players[victim].askNope(toDraw, move, players[victim].numCards)
+            if(toNope): continue
     
             if(move==2):
                 toDraw = toDraw+1 if toDraw==1 else toDraw+2

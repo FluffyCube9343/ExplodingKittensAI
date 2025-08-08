@@ -51,6 +51,19 @@ class Player: #RandomPlayer
         return togiveaway
     def reinsertEK(self, decklen):
         return int(random.random()*(decklen+1))
+    def askNope(self, toDraw, move, deckhandlens):
+        
+        if(self.hand[1] > 0):
+            toNope = rng.random() > 0.5
+        else:
+            toNope = False
+        if(toNope):
+            self.hand[1] -= 1
+            self.numCards -= 1
+            return True
+        else:
+            return False
+
 
     
 

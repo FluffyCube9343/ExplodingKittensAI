@@ -1,3 +1,7 @@
 .vscode
 __pycache__
 pycache
+
+
+# cProfile/snakeviz outputs
+*.prof
