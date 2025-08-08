@@ -35,6 +35,7 @@ def simulateGame(PLAYERS):
     victim = 1
     toDraw = 1
     while toDraw and len(players)>1:
+        
         move = 'skibidi'
         while move:
             move = players[turn].getMove(toDraw, players[victim].numCards)
@@ -45,6 +46,10 @@ def simulateGame(PLAYERS):
                     players[turn].numCards -= 1
                     playerdecks[turn][move] -= 1
             
+            state = (toDraw, (10 if len(deck) >= 10 else 5 if len(deck) >= 5 else len(deck)), *players[turn].hand, players[victim].numCards)
+            out = move or 0
+            # print(state, out)
+
             if(not move): continue
 
             toNope = players[victim].askNope(toDraw, move, players[victim].numCards)
