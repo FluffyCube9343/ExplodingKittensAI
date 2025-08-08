@@ -1,6 +1,7 @@
 import random
 from players import *
 import time; ctic = time.time()
+import gc
 
 #Deck Structure
 
@@ -9,6 +10,7 @@ import time; ctic = time.time()
 #[0.   1,    2,   3,    4,   5,    6,   7,  8,  9, 10, 11]
 
 #EXPL = -1
+
 
 def initDeck(deck, playerdecks, players, PLAYERS):
     rng.shuffle(deck)
@@ -26,7 +28,8 @@ def initDeck(deck, playerdecks, players, PLAYERS):
     players.append(Player(1,playerdecks[1]))
 
 
-def simulateGame(PLAYERS):
+def simulateGame(PLAYERS,hitcache=False):
+    global hit, cache
     deck = [1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 10, 10, 10, 10, 11, 11, 11, 11]
     playerdecks = [[1]+[0]*11 for n in range(PLAYERS)] #0 = me, 1+ = AIs
     players = []
@@ -46,7 +49,14 @@ def simulateGame(PLAYERS):
                     players[turn].numCards -= 1
                     playerdecks[turn][move] -= 1
             
-            state = (toDraw, (10 if len(deck) >= 10 else 5 if len(deck) >= 5 else len(deck)), *players[turn].hand, players[victim].numCards)
+            state = (move, toDraw, (10 if len(deck) >= 10 else 5 if len(deck) >= 5 else len(deck)), *players[turn].hand, players[victim].numCards)
+            if(hitcache):
+                if(state in totalstates):
+                    cache += 1
+                else:
+                    hit += 1
+            else:
+                totalstates.add(state)
             out = move or 0
             # print(state, out)
 
@@ -97,10 +107,17 @@ def simulateGame(PLAYERS):
 if __name__ == '__main__':
     onewin = 0
     zerowin = 0
-    for _ in range(int(1e4)):
+    for _ in range(int(4e4)):
         res = simulateGame(2)
         if(res==1): onewin += 1
         else: zerowin += 1
+    # for _ in range(int(1e5)):
+    #     res = simulateGame(2,True)
+    #     if(res==1): onewin += 1
+    #     else: zerowin += 1
+    
 
     print(zerowin, onewin, zerowin/(onewin+zerowin), onewin/(onewin+zerowin))
     print(time.time()-ctic)
+    print(len(totalstates), np.log10(len(totalstates)))
+    # print((cache), (hit), (cache)/(hit+cache))

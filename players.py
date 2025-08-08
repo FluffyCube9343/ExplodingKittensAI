@@ -3,6 +3,12 @@ import numpy as np
 rng = np.random.default_rng()
 
 
+# totalstates = {}
+totalstates = set()
+hit = 0
+cache = 0
+
+
 class Player: #RandomPlayer
     def __init__(self, name, hand):
         self.name = name
