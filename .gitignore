@@ -5,3 +5,6 @@ pycache
 
 # cProfile/snakeviz outputs
 *.prof
+
+# compiled code
+binaries/

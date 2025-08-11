@@ -1,0 +1,1 @@
+clear && echo "Start" && g++ -std=c++17 main.cpp -o binaries/mainout -O2 && ./binaries/mainout

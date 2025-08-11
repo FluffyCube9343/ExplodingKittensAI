@@ -89,7 +89,7 @@ int giveRandomMove(vector<int> deck, int name, int deckhandlens, int numPlayable
     }
 
     int total = accumulate(possible.begin(),possible.end(),0);
-    string state = getState(toDraw,lendeck,deck,deckhandlens);
+    // string state = getState(toDraw,lendeck,deck,deckhandlens);
     // if(totalstates.count(state)==0){
     //     return weightedRandom(possible,total);
     // }
@@ -352,7 +352,7 @@ int simulateGame(int players){
 
 int main(){
     time_t now = time(0);
-    for(int i=0;i<1'000'000;i++){
+    for(int i=0;i<1000000;i++){
         simulateGame(2);
     }
     cout << time(0)-now << " Seconds\n";
