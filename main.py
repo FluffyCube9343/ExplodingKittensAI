@@ -50,13 +50,13 @@ def simulateGame(PLAYERS,hitcache=False):
                     playerdecks[turn][move] -= 1
             
             state = (move, toDraw, (10 if len(deck) >= 10 else 5 if len(deck) >= 5 else len(deck)), *players[turn].hand, players[victim].numCards)
-            if(hitcache):
-                if(state in totalstates):
-                    cache += 1
-                else:
-                    hit += 1
-            else:
-                totalstates.add(state)
+            # if(hitcache):
+            #     if(state in totalstates):
+            #         cache += 1
+            #     else:
+            #         hit += 1
+            # else:
+            #     totalstates.add(state)
             out = move or 0
             # print(state, out)
 
@@ -107,7 +107,7 @@ def simulateGame(PLAYERS,hitcache=False):
 if __name__ == '__main__':
     onewin = 0
     zerowin = 0
-    for _ in range(int(4e4)):
+    for _ in range(round(1e6)):
         res = simulateGame(2)
         if(res==1): onewin += 1
         else: zerowin += 1
