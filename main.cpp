@@ -274,6 +274,20 @@ int simulateGame(int players){
                     PLAYERS[turn].hand[move] -= 1;    
                 }
             }
+
+            uint64_t state = move;
+            state <<= 4;
+            state |= toDraw;
+            state <<= 4;
+            state |= simpcards;
+            for(int i=0;i<12;i++){
+                state <<= 3;
+                state |= PLAYERS[turn].hand[i];
+            }
+            state <<= 6;
+            state |= PLAYERS[1].hand.size();
+            // cout << state<<"\n";
+
             // cout << "After op" << " " << vectorToString(PLAYERS[0].hand) << vectorToString(PLAYERS[1].hand) << "\n\n"; 
             
             if(move==0){
