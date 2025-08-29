@@ -8,6 +8,8 @@
 #include <random>
 #include <sstream>
 #include <ctime>
+#include <fstream>
+#include <vector>
 
 using namespace std;
 
@@ -16,7 +18,14 @@ mt19937 g(12);
 
 int hit = 0;
 int cache = 0;
-unordered_map<string,unordered_map<int,int>> totalstates;
+unordered_map<uint64_t, vector<pair<long,long>>> totalstates;
+
+/*
+    Structure:
+        Key: unsigned 64-int as encoded game state
+        Value: 12-vector of (wins, totals)
+
+*/
 
 
 
@@ -89,6 +98,36 @@ int giveRandomMove(vector<int> deck, int name, int deckhandlens, int numPlayable
     }
 
     int total = accumulate(possible.begin(),possible.end(),0);
+    if(total == 0){
+        return 0;
+    }
+
+    uint64_t state = toDraw;
+    state <<= 4;
+    state |= lendeck;
+
+    const auto &hand = deck;
+    for (int i = 0; i < 12; i++) {
+        state <<= 3;
+        state |= hand[i];
+    }
+
+    state <<= 6;
+    state |= deckhandlens;
+
+    
+    if(totalstates.find(state)!=totalstates.end()){
+        // cout << "HIT\n";
+        vector<pair<long,long>> vp = totalstates[state];
+        for(int i=0;i<12;i++){
+            if(possible[i]!=0 && vp[i].second==0){
+                return i;
+            }
+        }
+    }
+    
+
+
     // string state = getState(toDraw,lendeck,deck,deckhandlens);
     // if(totalstates.count(state)==0){
     //     return weightedRandom(possible,total);
@@ -100,9 +139,6 @@ int giveRandomMove(vector<int> deck, int name, int deckhandlens, int numPlayable
     //             return i;
     //         }
     //     }
-    if(total == 0){
-        return 0;
-    }
 
     // cout << vectorToString(possible) << " " << vectorToString(deck) << "\n";
     return weightedRandom(possible,total);
@@ -220,6 +256,22 @@ class Player{
 };
 
 
+void logtodict(vector<pair<uint64_t,int>>& statestolog, unordered_map<uint64_t, vector<pair<long,long>>>& statedict, int won){
+
+
+    // I think cpp wants to make me cry
+    for(pair<uint64_t,int> p : statestolog){
+        auto [it, inserted] = statedict.try_emplace(p.first, 12, pair<long,long>{0,0});
+        auto &statevec = it->second;
+        if(won == 1){
+            statevec[p.second].first  += 1;
+        }
+        statevec[p.second].second += 1;
+
+    }
+}
+
+
 
 
 
@@ -246,7 +298,9 @@ int simulateGame(int players){
     int turn = 0;
     int victim = 1;
     int toDraw = 1;
-
+    vector<pair<uint64_t,int>> firststates;
+    vector<pair<uint64_t,int>> secondstates;
+    
     while(toDraw>0 && PLAYERS.size()>1){
         int move = 999;
         int simpcards = 999;
@@ -275,17 +329,55 @@ int simulateGame(int players){
                 }
             }
 
-            uint64_t state = move;
-            state <<= 4;
-            state |= toDraw;
+            // uint64_t state = move;
+            // state <<= 4;
+
+            // uint64_t state = toDraw;
+            // state <<= 4;
+            // state |= simpcards;
+            // for(int i=0;i<12;i++){
+            //     state <<= 3;
+            //     state |= PLAYERS[turn].hand[i];
+            // }
+            // state <<= 6;
+            // state |= PLAYERS[1].hand.size();
+
+            // if(totalstates.find(state)==totalstates.end()){
+            //     auto &statevec = totalstates[state];
+            //     statevec.reserve(12);
+            //     for(int i=0;i<12;i++){
+            //         statevec.push_back({0,0});
+            //     }
+            // }
+            // totalstates[state][move].first += 1;
+            // totalstates[state][move].second += 1;
+            
+            uint64_t state = toDraw;
             state <<= 4;
             state |= simpcards;
-            for(int i=0;i<12;i++){
+
+            const auto &hand = PLAYERS[turn].hand;
+            for (int i = 0; i < 12; i++) {
                 state <<= 3;
-                state |= PLAYERS[turn].hand[i];
+                state |= hand[i];
             }
+
             state <<= 6;
             state |= PLAYERS[1].hand.size();
+            
+            if(turn==0){
+                firststates.push_back({state,move});
+            }
+            else if(turn==1){
+                secondstates.push_back({state,move});
+            }
+            else{
+                cout << "You a dumdum";
+            }
+            
+
+
+
             // cout << state<<"\n";
 
             // cout << "After op" << " " << vectorToString(PLAYERS[0].hand) << vectorToString(PLAYERS[1].hand) << "\n\n"; 
@@ -359,6 +451,14 @@ int simulateGame(int players){
             }
         }
     }
+    if(PLAYERS[0].name==0){
+        logtodict(firststates,totalstates,1);
+        logtodict(secondstates,totalstates,0);
+    }
+    else{
+        logtodict(firststates,totalstates,0);
+        logtodict(secondstates,totalstates,1);    
+    }
     return PLAYERS[0].name;
 
 }
@@ -366,8 +466,17 @@ int simulateGame(int players){
 
 int main(){
     time_t now = time(0);
-    for(int i=0;i<1000000;i++){
-        simulateGame(2);
+    int wins = 0;
+
+    int run = 1'000'00;
+
+    for(int i=0;i<run;i++){
+        if(simulateGame(2)==0){
+            wins += 1;
+        }
     }
     cout << time(0)-now << " Seconds\n";
+    cout << totalstates.size() << "\n";
+    cout << (wins+0.0)/run << "\n";
+
 }
