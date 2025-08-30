@@ -19,6 +19,7 @@ mt19937 g(12);
 int hit = 0;
 int cache = 0;
 unordered_map<uint64_t, vector<pair<long,long>>> totalstates;
+unordered_map<uint64_t, vector<pair<long,long>>> totalfavors;
 
 /*
     Structure:
@@ -217,8 +218,40 @@ class Player{
             }
         }
 
-        int getFavored(){
-            int togiveaway = weightedRandom(hand, numCards);
+        int getFavored(int toDraw, int deckhandlens, int lendeck){
+
+
+            int togiveaway = -999;
+            
+            uint64_t state = toDraw;
+            state <<= 4;
+            state |= lendeck;
+
+            // const auto &hand = deck;
+            for (int i = 0; i < 12; i++) {
+                state <<= 3;
+                state |= hand[i];
+            }
+
+            state <<= 6;
+            state |= deckhandlens;
+
+
+            if(totalstates.find(state)!=totalstates.end()){
+                // cout << "HIT\n";
+                vector<pair<long,long>> vp = totalstates[state];
+                for(int i=0;i<12;i++){
+                    if(hand[i]!=0 && vp[i].second==0){
+                        int togiveaway = i;
+                        break;
+                    }
+                }
+            }
+    
+
+            if(togiveaway==-999){
+                togiveaway = weightedRandom(hand, numCards);
+            }
             hand[togiveaway] -= 1;
             numCards -= 1;
             if(2<=togiveaway && togiveaway<=6){
@@ -300,6 +333,8 @@ int simulateGame(int players){
     int toDraw = 1;
     vector<pair<uint64_t,int>> firststates;
     vector<pair<uint64_t,int>> secondstates;
+    vector<pair<uint64_t,int>> firstfavored;
+    vector<pair<uint64_t,int>> secondfavored;
     
     while(toDraw>0 && PLAYERS.size()>1){
         int move = 999;
@@ -404,10 +439,22 @@ int simulateGame(int players){
                 victim = turn^1;
             }
             else if(move==4){
-                int favorcard = PLAYERS[victim].getFavored();
+                int favorcard = PLAYERS[victim].getFavored(toDraw, PLAYERS[victim].numCards, simpcards);
                 PLAYERS[turn].hand[favorcard] += 1;
                 PLAYERS[turn].numCards += 1;
                 PLAYERS[turn].inform(turn,move,victim,favorcard);
+                
+                //turn 1 means 0 got favored.
+                if(turn==1){
+                    firstfavored.push_back({state,favorcard});
+                }
+                else if(turn==0){
+                    secondfavored.push_back({state,favorcard});
+                }
+                else{
+                    cout << "You a dumdum 2\n";
+                }
+
             }
             else if(move==5){
                 shuffle(deck.begin(),deck.end(),g);
@@ -454,10 +501,14 @@ int simulateGame(int players){
     if(PLAYERS[0].name==0){
         logtodict(firststates,totalstates,1);
         logtodict(secondstates,totalstates,0);
+        logtodict(firstfavored,totalfavors,1);
+        logtodict(secondfavored,totalfavors,0);
     }
     else{
         logtodict(firststates,totalstates,0);
-        logtodict(secondstates,totalstates,1);    
+        logtodict(secondstates,totalstates,1); 
+        logtodict(firstfavored,totalfavors,0);
+        logtodict(secondfavored,totalfavors,1);   
     }
     return PLAYERS[0].name;
 
@@ -468,7 +519,7 @@ int main(){
     time_t now = time(0);
     int wins = 0;
 
-    int run = 1'000'00;
+    int run = 1'000'0000;
 
     for(int i=0;i<run;i++){
         if(simulateGame(2)==0){
@@ -476,7 +527,19 @@ int main(){
         }
     }
     cout << time(0)-now << " Seconds\n";
-    cout << totalstates.size() << "\n";
+    //  198290 on 10^5
+    //  528909 on 10^6 (2.67x )
+    // 1257451 on 10^7 (2.38x )
+    cout << "totalstates: " << totalstates.size() << "\n";
+    //   43933 on 10^5
+    //  137236 on 10^6 (3.12x )
+    //  367714 on 10^7 (2.68x )
+    cout << "totalfavors: " << totalfavors.size() << "\n";
     cout << (wins+0.0)/run << "\n";
 
 }
+
+
+// 1 sec on 10^5
+// 14 sec on 10^6
+// 158 sec on 10^7
