@@ -519,7 +519,7 @@ int main(){
     time_t now = time(0);
     int wins = 0;
 
-    int run = 1'000'0000;
+    int run = 1'000'000;
 
     for(int i=0;i<run;i++){
         if(simulateGame(2)==0){
