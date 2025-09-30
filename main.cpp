@@ -10,6 +10,7 @@
 #include <ctime>
 #include <fstream>
 #include <vector>
+#include <chrono>
 
 using namespace std;
 
@@ -518,17 +519,24 @@ int simulateGame(int players){
 
 
 int main(){
-    time_t now = time(0);
+    // time_t now = time(0);
+    auto start = chrono::high_resolution_clock::now();
     int wins = 0;
 
-    int run = 1'000'000;
+
+    int run = 1'000'00;
+    // int run = 1'000'000;
 
     for(int i=0;i<run;i++){
         if(simulateGame(2)==0){
             wins += 1;
         }
     }
-    cout << time(0)-now << " Seconds\n";
+
+    auto end = chrono::high_resolution_clock::now();
+    auto duration = chrono::duration_cast<chrono::microseconds>(end - start);
+    // cout << time(0)-now << " Seconds\n";
+    cout << duration.count()/1'000'000.0 << " seconds\n"; // defaults in microseconds
     //  198290 on 10^5
     //  528909 on 10^6 (2.67x )
     // 1257451 on 10^7 (2.38x )
@@ -538,7 +546,7 @@ int main(){
     //  367714 on 10^7 (2.68x )
     cout << "totalfavors (no repeats): " << totalfavors.size() << "\n";
 
-    cout << "totalnumberofstates (incl. repeats)" << numberofstates << "\n";
+    cout << "totalnumberofstates (incl. repeats): " << numberofstates << "\n";
     cout << (wins+0.0)/run << "\n";
 
 }
