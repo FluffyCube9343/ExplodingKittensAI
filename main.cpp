@@ -18,6 +18,7 @@ mt19937 g(12);
 
 int hit = 0;
 int cache = 0;
+long numberofstates = 0;
 unordered_map<uint64_t, vector<pair<long,long>>> totalstates;
 unordered_map<uint64_t, vector<pair<long,long>>> totalfavors;
 
@@ -352,6 +353,7 @@ int simulateGame(int players){
 
         while(move != 0){
             move = PLAYERS[turn].getMove(toDraw,PLAYERS[victim].numCards, simpcards);
+            numberofstates += 1;
 
             // cout << turn << " "<< move << " " << vectorToString(PLAYERS[0].hand) << vectorToString(PLAYERS[1].hand) << victim << "\n"; 
 
@@ -530,11 +532,13 @@ int main(){
     //  198290 on 10^5
     //  528909 on 10^6 (2.67x )
     // 1257451 on 10^7 (2.38x )
-    cout << "totalstates: " << totalstates.size() << "\n";
+    cout << "totalstates (no repeats): " << totalstates.size() << "\n";
     //   43933 on 10^5
     //  137236 on 10^6 (3.12x )
     //  367714 on 10^7 (2.68x )
-    cout << "totalfavors: " << totalfavors.size() << "\n";
+    cout << "totalfavors (no repeats): " << totalfavors.size() << "\n";
+
+    cout << "totalnumberofstates (incl. repeats)" << numberofstates << "\n";
     cout << (wins+0.0)/run << "\n";
 
 }
