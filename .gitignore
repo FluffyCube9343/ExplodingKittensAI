@@ -8,5 +8,6 @@ pycache
 
 # compiled code
 binaries/
+*.out
 
 *.bak
