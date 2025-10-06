@@ -48,7 +48,6 @@ int weightedRandom(vector<int> weights, int total){
     int chosen = rand()%total;
     int runningsum = 0;
     // cout << "wR: "<< vectorToString(weights) << " " << total<< " " << chosen << "\n" ;
-    
     for(int i=0;i<12;i++){
         runningsum += weights[i];
         if(runningsum > chosen){
@@ -164,7 +163,7 @@ class Player{
         Player(int n, vector<int> h){
             name = n;
             hand = h;
-            numCards = accumulate(h.begin(),h.end(),0);
+            numCards = 8;
             numPlayable = hand[2]+hand[3]+hand[4]+hand[5]+hand[6]+hand[7]/2+hand[8]/2+hand[9]/2+hand[10]/2+hand[11]/2;
         }
     
@@ -307,117 +306,37 @@ void logtodict(vector<pair<uint64_t,int>>& statestolog, unordered_map<uint64_t, 
     }
 }
 
-int simulateGame2(int players, vector<int> unexposed, vector<int> yours, int lenDeck, int theirs, int toDraw, int turn, int opDefuse, vector<int> deckifgiven);
+
+
+
 
 int simulateGame(int players){
-    //starting generator
-
-    vector<int> startingcards = {
-        2, 5, 4, 4,
-        4, 4, 5,
-        4, 4, 4, 4, 4
-    };
-
-    vector<int> yours = {
-        1,0,0,0,
-        0,0,0,0,
-        0,0,0,0
-    };
-
     vector<int> deck = {1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 10, 10, 10, 10, 11, 11, 11, 11};
+    vector<Player> PLAYERS = {};
     shuffle(deck.begin(),deck.end(),g);
 
-    for(int j=0;j<7;j++){
-        yours[deck.back()] += 1;
-        startingcards[deck.back()] -= 1;
-        deck.pop_back();
-    }
-    
-
-    return simulateGame2(2,startingcards,yours,deck.size(),8,1,0,1,deck);
-}
-
-
-// Assume you are 0, they are 1.
-
-// WARNING: THIS ASSUMES OP CAN HAVE 2+ DEFUSES AT THE START OF TURN 0.
-// deckifgiven is nonempty if it is an initial call, empty if it is! (because why would you know what's in the deck?)
-int simulateGame2(int players, vector<int> unexposed, vector<int> yours, int lenDeck, int theirs, int toDraw, int turn, int opDefuse, vector<int> deckifgiven){
-// int simulateGame(int players){
-    
-    vector<Player> PLAYERS = {};
-    
-    vector<int> deck = {};
-    if(deckifgiven.size()==0){
-        for(int i=1;i<12;i++){
-            for(int j=0;j<unexposed[i];j++){
-                deck.push_back(i);
-            }
+    for(int i=0;i<players;i++){
+        vector<int> hand = {0,0,0,0,0,0,0,0,0,0,0,0};
+        for(int j=0;j<7;j++){
+            hand[deck.back()] += 1;
+            deck.pop_back();
         }
-        shuffle(deck.begin(),deck.end(),g);
-    }
-    else{
-        deck = deckifgiven;
+        hand[0] += 1; //defuse
+        PLAYERS.push_back(Player(i,hand));
     }
 
-
-
-    PLAYERS.push_back(Player(0,yours));
-
-    vector<int> ophand = {0,0,0,0,0,0,0,0,0,0,0,0};
-    for(int j=0;j<theirs-opDefuse;j++){
-        ophand[deck.back()] += 1;
-        deck.pop_back();
-    }
-    for(int j = 0;j<opDefuse;j++){
-        ophand[0] += 1;
-
-    }
-    
-
-    PLAYERS.push_back(Player(1,ophand));
-
-
-    
-    for(int j=0;j<3-opDefuse;j++){
-        deck.push_back(0);
-    }
+    deck.push_back(0);
+    deck.push_back(0);
     deck.push_back(-1);
     shuffle(deck.begin(),deck.end(),g); 
-    int victim = turn^1;
-
+    
+    int turn = 0;
+    int victim = 1;
+    int toDraw = 1;
     vector<pair<uint64_t,int>> firststates;
     vector<pair<uint64_t,int>> secondstates;
     vector<pair<uint64_t,int>> firstfavored;
     vector<pair<uint64_t,int>> secondfavored;
-    
-    
-    // cout << "init: " << vectorToString(unexposed) << vectorToString(yours) << vectorToString(PLAYERS[1].hand) << opDefuse+"\n";
-    // vector<int> deck = {1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 10, 10, 10, 10, 11, 11, 11, 11};
-    // shuffle(deck.begin(),deck.end(),g);
-
-    // for(int i=0;i<players;i++){
-    //     vector<int> hand = {0,0,0,0,0,0,0,0,0,0,0,0};
-    //     for(int j=0;j<7;j++){
-    //         hand[deck.back()] += 1;
-    //         deck.pop_back();
-    //     }
-    //     hand[0] += 1; //defuse
-    //     PLAYERS.push_back(Player(i,hand));
-    // }
-
-    // deck.push_back(0);
-    // deck.push_back(0);
-    // deck.push_back(-1);
-    // shuffle(deck.begin(),deck.end(),g); 
-    
-    // int turn = 0;
-    // int victim = turn^1;
-    // int toDraw = 1;
-    // vector<pair<uint64_t,int>> firststates;
-    // vector<pair<uint64_t,int>> secondstates;
-    // vector<pair<uint64_t,int>> firstfavored;
-    // vector<pair<uint64_t,int>> secondfavored;
     
     while(toDraw>0 && PLAYERS.size()>1){
         int move = 999;
@@ -547,7 +466,6 @@ int simulateGame2(int players, vector<int> unexposed, vector<int> yours, int len
                 //oh look you need to fill this in
             }
             else if(move>=7){
-                // cout << 7 << "called by " << turn << "\n";
                 int cardtaken = weightedRandom(PLAYERS[victim].hand,PLAYERS[victim].numCards);
                 // cout << "Card Taken " << cardtaken<<"\n";
                 PLAYERS[victim].hand[cardtaken]-=1;
@@ -583,18 +501,18 @@ int simulateGame2(int players, vector<int> unexposed, vector<int> yours, int len
             }
         }
     }
-    // if(PLAYERS[0].name==0){
-    //     logtodict(firststates,totalstates,1);
-    //     logtodict(secondstates,totalstates,0);
-    //     logtodict(firstfavored,totalfavors,1);
-    //     logtodict(secondfavored,totalfavors,0);
-    // }
-    // else{
-    //     logtodict(firststates,totalstates,0);
-    //     logtodict(secondstates,totalstates,1); 
-    //     logtodict(firstfavored,totalfavors,0);
-    //     logtodict(secondfavored,totalfavors,1);   
-    // }
+    if(PLAYERS[0].name==0){
+        logtodict(firststates,totalstates,1);
+        logtodict(secondstates,totalstates,0);
+        logtodict(firstfavored,totalfavors,1);
+        logtodict(secondfavored,totalfavors,0);
+    }
+    else{
+        logtodict(firststates,totalstates,0);
+        logtodict(secondstates,totalstates,1); 
+        logtodict(firstfavored,totalfavors,0);
+        logtodict(secondfavored,totalfavors,1);   
+    }
     return PLAYERS[0].name;
 
 }
@@ -633,15 +551,7 @@ int main(){
 
 }
 
-// With logging
 
 // 1 sec on 10^5 --> 1.10 sec
 // 14 sec on 10^6 --> 13.53 sec
 // 158 sec on 10^7 --> 154.155 sec
-
-
-// logless
-
-//  0.573 sec on 10^5
-//  5.600 sec on 10^6
-// 53.295 sec on 10^7

@@ -6,6 +6,8 @@ pycache
 # cProfile/snakeviz outputs
 *.prof
 
+# perf
+perf*
 # compiled code
 binaries/
 *.out
