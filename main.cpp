@@ -524,7 +524,7 @@ int main(){
     int wins = 0;
 
 
-    int run = 1'000'00;
+    int run = 1'000'0000;
     // int run = 1'000'000;
 
     for(int i=0;i<run;i++){
@@ -552,6 +552,6 @@ int main(){
 }
 
 
-// 1 sec on 10^5
-// 14 sec on 10^6
-// 158 sec on 10^7
+// 1 sec on 10^5 --> 1.10 sec
+// 14 sec on 10^6 --> 13.53 sec
+// 158 sec on 10^7 --> 154.155 sec
