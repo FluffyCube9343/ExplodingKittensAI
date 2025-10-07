@@ -324,7 +324,13 @@ int simulateGame(int players){
         0,0,0,0
     };
 
-    vector<int> deck = {1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 10, 10, 10, 10, 11, 11, 11, 11};
+    vector<int> deck = {};
+    for(int i=0;i<12;i++){
+        for(int j=0;j<startingcards[i];j++){
+            deck.push_back(i);
+        }
+    }
+    // vector<int> deck = {1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 10, 10, 10, 10, 11, 11, 11, 11};
     shuffle(deck.begin(),deck.end(),g);
 
     for(int j=0;j<7;j++){
@@ -360,6 +366,7 @@ int simulateGame2(int players, vector<int> unexposed, vector<int> yours, int len
         deck = deckifgiven;
     }
 
+    // cout << deck.size() << "\n";
 
 
     PLAYERS.push_back(Player(0,yours));
@@ -606,7 +613,7 @@ int main(){
     int wins = 0;
 
 
-    int run = 1'000'0000;
+    int run = 1'000'00;
     // int run = 1'000'000;
 
     for(int i=0;i<run;i++){
