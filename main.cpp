@@ -325,19 +325,22 @@ int simulateGame(int players){
     };
 
     vector<int> deck = {};
-    for(int i=0;i<12;i++){
+    for(int i=1;i<12;i++){
         for(int j=0;j<startingcards[i];j++){
             deck.push_back(i);
         }
     }
-    // vector<int> deck = {1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 10, 10, 10, 10, 11, 11, 11, 11};
     shuffle(deck.begin(),deck.end(),g);
-
+    // vector<int> deck = {1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 10, 10, 10, 10, 11, 11, 11, 11};
+    
     for(int j=0;j<7;j++){
         yours[deck.back()] += 1;
         startingcards[deck.back()] -= 1;
         deck.pop_back();
     }
+
+
+
     
 
     return simulateGame2(2,startingcards,yours,deck.size(),8,1,0,1,deck);
@@ -386,7 +389,7 @@ int simulateGame2(int players, vector<int> unexposed, vector<int> yours, int len
 
 
     
-    for(int j=0;j<3-opDefuse;j++){
+    for(int j=0;j<4-opDefuse-yours[0];j++){
         deck.push_back(0);
     }
     deck.push_back(-1);
