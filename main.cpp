@@ -152,6 +152,7 @@ int giveRandomMove(vector<int> deck, int name, int deckhandlens, int numPlayable
 }
 
 
+pair<int,int> simulateGame2(int players, vector<int> unexposed, vector<int> yours, int lenDeck, int theirs, int toDraw, int turn, int opDefuse, vector<int> deckifgiven);
 
 
 class Player{
@@ -222,11 +223,16 @@ class Player{
         }
 
         int getMove(int toDraw, int deckhandlens, int lendeck, int inception){
-            int chosenmove = giveRandomMove(hand, name, deckhandlens, numPlayable, lendeck, toDraw);
-            if(chosenmove!=0){
-                numPlayable -= 1;
-            }
-            return chosenmove;
+            // if(inception==0){
+            //     // simulateGame2
+            // }
+            // else{
+                int chosenmove = giveRandomMove(hand, name, deckhandlens, numPlayable, lendeck, toDraw);
+                if(chosenmove!=0){
+                    numPlayable -= 1;
+                }
+                return chosenmove;
+            // }
         }
 
         int cardDrawn(int card){
@@ -344,9 +350,8 @@ void logtodict(vector<pair<uint64_t,int>>& statestolog, unordered_map<uint64_t, 
     }
 }
 
-int simulateGame2(int players, vector<int> unexposed, vector<int> yours, int lenDeck, int theirs, int toDraw, int turn, int opDefuse, vector<int> deckifgiven);
 
-int simulateGame(int players){
+pair<int,int> simulateGame(int players){
     //starting generator
 
     vector<int> startingcards = {
@@ -388,7 +393,7 @@ int simulateGame(int players){
 
 // WARNING: THIS ASSUMES OP CAN HAVE 2+ DEFUSES AT THE START OF TURN 0.
 // deckifgiven is nonempty if it is an initial call, empty if it is! (because why would you know what's in the deck?)
-int simulateGame2(int players, vector<int> unexposed, vector<int> yours, int lenDeck, int theirs, int toDraw, int turn, int opDefuse, vector<int> deckifgiven){
+pair<int,int> simulateGame2(int players, vector<int> unexposed, vector<int> yours, int lenDeck, int theirs, int toDraw, int turn, int opDefuse, vector<int> deckifgiven){
 // int simulateGame(int players){
     
     vector<Player> PLAYERS = {};
@@ -470,6 +475,7 @@ int simulateGame2(int players, vector<int> unexposed, vector<int> yours, int len
     // vector<pair<uint64_t,int>> firstfavored;
     // vector<pair<uint64_t,int>> secondfavored;
     
+    int initmove = -1000;
     while(toDraw>0 && PLAYERS.size()>1){
         int move = 999;
         int simpcards = 999;
@@ -486,6 +492,9 @@ int simulateGame2(int players, vector<int> unexposed, vector<int> yours, int len
 
         while(move != 0){
             move = PLAYERS[turn].getMove(toDraw,PLAYERS[victim].numCards, simpcards, inception);
+            if(initmove==-1000){
+                initmove = move;
+            }
             numberofstates += 1;
 
             // cout << turn << " "<< move << " " << vectorToString(PLAYERS[0].hand) << vectorToString(PLAYERS[1].hand) << victim  << vectorToString(PLAYERS[0].hidden) << vectorToString(PLAYERS[1].hidden) << PLAYERS[0].opDefuse << PLAYERS[1].opDefuse << "\n"; 
@@ -659,7 +668,8 @@ int simulateGame2(int players, vector<int> unexposed, vector<int> yours, int len
     //     logtodict(firstfavored,totalfavors,0);
     //     logtodict(secondfavored,totalfavors,1);   
     // }
-    return PLAYERS[0].name;
+    pair<int, int> a = {initmove, PLAYERS[0].name};
+    return a;
 
 }
 
@@ -674,7 +684,8 @@ int main(){
     // int run = 1'000'000;
 
     for(int i=0;i<run;i++){
-        if(simulateGame(2)==0){
+        pair<int,int> winpair = simulateGame(2);
+        if(winpair.second==0){
             wins += 1;
         }
     }
