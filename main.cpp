@@ -160,34 +160,68 @@ class Player{
         int numPlayable;
         int numCards;
         vector<int> hand;
+        vector<int> hidden;
+        int opDefuse;
 
         Player(int n, vector<int> h){
             name = n;
             hand = h;
             numCards = accumulate(h.begin(),h.end(),0);
+            hidden = {4, 5, 4, 4, 4, 4, 5, 4, 4, 4, 4, 4};
             numPlayable = hand[2]+hand[3]+hand[4]+hand[5]+hand[6]+hand[7]/2+hand[8]/2+hand[9]/2+hand[10]/2+hand[11]/2;
+            for(int i=0;i<12;i++){
+                hidden[i]-=hand[i];
+            }
+            opDefuse = 1;
         }
     
         void inform(int player, int move, int victim, int cardtaken){
-            if(player!=name && move>=7 && victim==name){
+            if(player!=name && move>=7 && victim==name){ //lose a card
                 if(cardtaken>=2 && cardtaken<=6){
                     numPlayable-=1;
                 }
                 else if(cardtaken >= 7 and hand[cardtaken]%2==1){
                     numPlayable-=1;
                 }
+                if(cardtaken==0){
+                    opDefuse += 1;
+                }
+                hidden[cardtaken] += 1;
+
             }
-            else if(player==name && (move==4 || move>=7)){
+            else if(player!=name && move==4 && victim==name){//lose card via favor
+                //favor logic done in game simulation
+                hidden[cardtaken] += 1;
+            }
+            else if(player==name && (move==4 || move>=7)){ //gain a card
                 if(cardtaken>=2 && cardtaken<=6){
                     numPlayable+=1;
                 }
                 else if(cardtaken >= 7 and hand[cardtaken]%2==0){
                     numPlayable+=1;
                 }
+                if(cardtaken==0){
+                    opDefuse -= 1;
+                    // if(opDefuse < 0){cout << "Negative! something went wrong lol \n"; cin.get();}
+                }
+                hidden[cardtaken] -= 1;
+                if(hidden[cardtaken] < 0){cout << "Negative! something went wrong lol2 \n"; cin.get();}
             }
+            if(player!=name and move > 0){
+                hidden[move] -= 1;
+                if(move >= 7){
+                    hidden[move] -= 1;
+                }
+                if(hidden[move] < 0){cout << "Negative! something went wrong lol4 \n"; cin.get();}
+            }
+            if(player!=name and move == -1){
+                hidden[0] -= 1;
+                opDefuse -= 1;
+            }
+            
         }
 
-        int getMove(int toDraw, int deckhandlens, int lendeck){
+        int getMove(int toDraw, int deckhandlens, int lendeck, int inception){
             int chosenmove = giveRandomMove(hand, name, deckhandlens, numPlayable, lendeck, toDraw);
             if(chosenmove!=0){
                 numPlayable -= 1;
@@ -196,18 +230,21 @@ class Player{
         }
 
         int cardDrawn(int card){
-            if(card==-1){
-                if(hand[0]==0){
+            // cout << "Player" << name << " drew " << card << "\n";
+            if(card==-1){ //Oh no! An exploding kitten!
+                if(hand[0]==0){ // rip ur dead
                     return 0;
                 }
-                else{
+                else{ // use a defuse!
                     hand[0] -= 1;
                     numCards -= 1;
                     return 1;
                 }
             }
-            else{
+            else{ // safe!
                 hand[card] += 1;
+                hidden[card] -= 1;
+                if(hidden[card] < 0){cout << "Negative! something went wrong lol3 \n";  cout << vectorToString(hidden) << name; cin.get();}
                 numCards += 1;
                 if(card >= 7){
                     if(hand[card]%2==0){
@@ -369,6 +406,10 @@ int simulateGame2(int players, vector<int> unexposed, vector<int> yours, int len
         deck = deckifgiven;
     }
 
+    int inception = 0;
+    if(deckifgiven.size()==0){
+        inception += 1;
+    }
     // cout << deck.size() << "\n";
 
 
@@ -444,11 +485,11 @@ int simulateGame2(int players, vector<int> unexposed, vector<int> yours, int len
 
 
         while(move != 0){
-            move = PLAYERS[turn].getMove(toDraw,PLAYERS[victim].numCards, simpcards);
+            move = PLAYERS[turn].getMove(toDraw,PLAYERS[victim].numCards, simpcards, inception);
             numberofstates += 1;
 
-            // cout << turn << " "<< move << " " << vectorToString(PLAYERS[0].hand) << vectorToString(PLAYERS[1].hand) << victim << "\n"; 
-
+            // cout << turn << " "<< move << " " << vectorToString(PLAYERS[0].hand) << vectorToString(PLAYERS[1].hand) << victim  << vectorToString(PLAYERS[0].hidden) << vectorToString(PLAYERS[1].hidden) << PLAYERS[0].opDefuse << PLAYERS[1].opDefuse << "\n"; 
+            // cin.get();
             if(move!=0){
                 PLAYERS[turn].numCards -= 1;
                 PLAYERS[turn].hand[move] -= 1;
@@ -511,12 +552,21 @@ int simulateGame2(int players, vector<int> unexposed, vector<int> yours, int len
 
             // cout << "After op" << " " << vectorToString(PLAYERS[0].hand) << vectorToString(PLAYERS[1].hand) << "\n\n"; 
             
+            if(move != 4 and move < 7){ // not a favor or a cat card
+                PLAYERS[0].inform(turn,move,-999,-999);
+                PLAYERS[1].inform(turn,move,-999,-999);
+            }
             if(move==0){
                 continue;
             }
 
             bool toNope = PLAYERS[victim].askNope(toDraw,move,PLAYERS[victim].numCards);
-            if(toNope){continue;}
+            if(toNope){ // not a favor or a cat card
+                // cout << "noped\n";
+                PLAYERS[0].inform(victim,1,-999,-999);
+                PLAYERS[1].inform(victim,1,-999,-999);
+                continue;
+            }
 
             if(move==2){
                 if(toDraw==1){
@@ -536,7 +586,8 @@ int simulateGame2(int players, vector<int> unexposed, vector<int> yours, int len
                 int favorcard = PLAYERS[victim].getFavored(toDraw, PLAYERS[victim].numCards, simpcards);
                 PLAYERS[turn].hand[favorcard] += 1;
                 PLAYERS[turn].numCards += 1;
-                PLAYERS[turn].inform(turn,move,victim,favorcard);
+                PLAYERS[0].inform(turn,move,victim,favorcard);
+                PLAYERS[1].inform(turn,move,victim,favorcard);
                 
                 //turn 1 means 0 got favored.
                 if(turn==1){
@@ -578,6 +629,9 @@ int simulateGame2(int players, vector<int> unexposed, vector<int> yours, int len
         }
         else{
             if(safe==1){
+                //tell everyone you drew an exploding kitten!
+                PLAYERS[0].inform(0,-1,-1000,-1000);
+                PLAYERS[1].inform(1,-1,-1000,-1000);
                 if(deck.size()==0){
                     deck.push_back(-1);
                 }
