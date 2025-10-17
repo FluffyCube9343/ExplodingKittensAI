@@ -163,7 +163,7 @@ class Player{
         vector<int> hand;
         vector<int> hidden;
         int opDefuse;
-        int decklen;
+        // int decklen;
 
         Player(int n, vector<int> h, int dl){
             name = n;
@@ -175,7 +175,7 @@ class Player{
                 hidden[i]-=hand[i];
             }
             opDefuse = 1;
-            decklen = dl;
+            // decklen = dl;
         }
     
         void inform(int player, int move, int victim, int cardtaken){
@@ -222,21 +222,21 @@ class Player{
                 opDefuse -= 1;
             }
             if(move==0){
-                decklen -= 1;
-                if(decklen < 0){
-                    cout << "oopsies\n";
-                }
+                // decklen -= 1;
+                // if(decklen < 0){
+                //     cout << "oopsies\n";
+                // }
             }
-            if(move==-1){
-                decklen += 1;
-            }
+            // if(move==-1){
+            //     decklen += 1;
+            // }
             
         }
 
         int getMove(int toDraw, int deckhandlens, int lendeck, int inception){
             // if(inception==0){
             //     vector<int> psbmoves = {0,0,0,0,0,0,0,0,0,0,0,0};
-            //     pair<int, int> winpair = simulateGame2(2,hidden,hand,)
+            //     pair<int, int> winpair = simulateGame2(2,hidden,hand,decklen,"theirs",toDraw,)
             // }
             // else{
                 int chosenmove = giveRandomMove(hand, name, deckhandlens, numPlayable, lendeck, toDraw);
@@ -503,7 +503,7 @@ pair<int,int> simulateGame2(int players, vector<int> unexposed, vector<int> your
 
 
         while(move != 0){
-            move = PLAYERS[turn].getMove(toDraw,PLAYERS[victim].numCards, simpcards, inception);
+            move = PLAYERS[turn].getMove(toDraw,PLAYERS[victim].numCards, deck.size(), inception);
             if(initmove==-1000){
                 initmove = move;
             }
@@ -511,10 +511,10 @@ pair<int,int> simulateGame2(int players, vector<int> unexposed, vector<int> your
 
             
 
-            if(deck.size() != PLAYERS[0].decklen){
-                cout << move << " " << deck.size() << PLAYERS[0].decklen << PLAYERS[1].decklen;
-                cin.get();
-            }
+            // if(deck.size() != PLAYERS[0].decklen){
+            //     cout << move << " " << deck.size() << PLAYERS[0].decklen << PLAYERS[1].decklen;
+            //     cin.get();
+            // }
             // cout << turn << " "<< move << " " << vectorToString(PLAYERS[0].hand) << vectorToString(PLAYERS[1].hand) << victim  << vectorToString(PLAYERS[0].hidden) << vectorToString(PLAYERS[1].hidden) << PLAYERS[0].opDefuse << PLAYERS[1].opDefuse << "\n"; 
             // cin.get();
             if(move!=0){
@@ -610,7 +610,7 @@ pair<int,int> simulateGame2(int players, vector<int> unexposed, vector<int> your
                 victim = turn^1;
             }
             else if(move==4){
-                int favorcard = PLAYERS[victim].getFavored(toDraw, PLAYERS[victim].numCards, simpcards);
+                int favorcard = PLAYERS[victim].getFavored(toDraw, PLAYERS[victim].numCards, deck.size());
                 PLAYERS[turn].hand[favorcard] += 1;
                 PLAYERS[turn].numCards += 1;
                 PLAYERS[0].inform(turn,move,victim,favorcard);
