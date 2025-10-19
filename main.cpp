@@ -22,6 +22,7 @@ int cache = 0;
 long numberofstates = 0;
 unordered_map<uint64_t, vector<pair<long,long>>> totalstates;
 unordered_map<uint64_t, vector<pair<long,long>>> totalfavors;
+int numMoves;
 
 /*
     Structure:
@@ -48,7 +49,6 @@ int weightedRandom(vector<int> weights, int total){
     int chosen = rand()%total;
     int runningsum = 0;
     // cout << "wR: "<< vectorToString(weights) << " " << total<< " " << chosen << "\n" ;
-    
     for(int i=0;i<12;i++){
         runningsum += weights[i];
         if(runningsum > chosen){
@@ -76,32 +76,40 @@ string getState(int toDraw, int lendeck, vector<int> deck, int deckhandlens){
 }
 
 
-int giveRandomMove(vector<int> deck, int name, int deckhandlens, int numPlayable, int lendeck, int toDraw){
+int giveRandomMove(vector<int> hand, int name, int deckhandlens, int numPlayable, int lendeck, int toDraw){
+    // if(lendeck > 25 and name==0){
+    //     return 0;
+    // }
     if(numPlayable ==0){
         return 0;
     }
-    if(rand()%(numPlayable+1) == 0){
+    if((rand()%(numPlayable+1) == 0) && name==1){
         return 0;
     }
 
     int victim = name^1;
 
     vector<int> possible(12);
-    possible[2] = deck[2];
-    possible[3] = deck[3];
-    possible[5] = deck[5];
-    possible[6] = deck[6];
+    possible[2] = hand[2];
+    possible[3] = hand[3];
+    possible[5] = hand[5];
+    possible[6] = hand[6];
     if(deckhandlens!=0){ //favor/catcard-able
-        possible[4] = deck[4];
-        possible[7] = deck[7]/2;
-        possible[8] = deck[8]/2;
-        possible[9] = deck[9]/2;
-        possible[10] = deck[10]/2;
-        possible[11] = deck[11]/2;
+        possible[4] = hand[4];
+        possible[7] = hand[7]/2;
+        possible[8] = hand[8]/2;
+        possible[9] = hand[9]/2;
+        possible[10] = hand[10]/2;
+        possible[11] = hand[11]/2;
         
     }
 
     int total = accumulate(possible.begin(),possible.end(),0);
+    // cout << "player" << name << "total" << total << "np" << numPlayable << "\n";
+    // if(numPlayable != total){
+    //     cout << "it failed smh\n";
+    //     cin.get();
+    // }
     if(total == 0){
         return 0;
     }
@@ -110,25 +118,25 @@ int giveRandomMove(vector<int> deck, int name, int deckhandlens, int numPlayable
     state <<= 4;
     state |= lendeck;
 
-    const auto &hand = deck;
+    const auto &hand2 = hand;
     for (int i = 0; i < 12; i++) {
         state <<= 3;
-        state |= hand[i];
+        state |= hand2[i];
     }
 
     state <<= 6;
     state |= deckhandlens;
 
     
-    if(totalstates.find(state)!=totalstates.end()){
-        // cout << "HIT\n";
-        vector<pair<long,long>> vp = totalstates[state];
-        for(int i=0;i<12;i++){
-            if(possible[i]!=0 && vp[i].second==0){
-                return i;
-            }
-        }
-    }
+    // if(totalstates.find(state)!=totalstates.end()){
+    //     // cout << "HIT\n";
+    //     vector<pair<long,long>> vp = totalstates[state];
+    //     for(int i=0;i<12;i++){
+    //         if(possible[i]!=0 && vp[i].second==0){
+    //             return i;
+    //         }
+    //     }
+    // }
     
 
 
@@ -145,7 +153,65 @@ int giveRandomMove(vector<int> deck, int name, int deckhandlens, int numPlayable
     //     }
 
     // cout << vectorToString(possible) << " " << vectorToString(deck) << "\n";
-    return weightedRandom(possible,total);
+    // if(total < 1){
+    // cout << "total is " << total << "\n";}
+    // if(name==0){
+    //     if(lendeck > 20){
+    //         return 0;
+    //     }
+    //     else if(lendeck > 5){
+    //         if((rand()%(numPlayable+1) == 0) && name==1){
+    //             return 0;
+    //         }
+    //     }
+    //     if(total==0){
+    //         return 0;
+    //     }
+    //     // if((wr == 2 || wr == 3) && possible[6]+possible[2]+possible[3]==total){
+    //     //     return 0;
+    //     // }
+
+    //     int wr = weightedRandom(possible,total);
+    //     if(lendeck > 7){
+    //         if(possible[6] + possible[2] + possible[3] == total){
+    //             return 0;
+    //         }
+    //     }
+    //     else{
+    //         if(possible[6] == total){
+    //             return 0;
+    //         }
+    //     }
+    //     if(((wr == 2|| wr == 3) && lendeck > 7) && possible[6]+possible[2]+possible[3]==total){
+    //         return 0;
+    //     }
+    //     // if((wr == 6 || wr == 2 || wr == 3) && possible[6]+possible[2]+possible[3] == total){ //conserve see the future
+    //     //     return 0;
+    //     // }
+    //     // cout << "psb" << vectorToString(possible) << lendeck << "\n";
+    //     int stuckno = 0;
+    //     total -= possible[6];
+    //     possible[6] = 0;
+    //     if(lendeck > 7){
+    //         total -= possible[2];
+    //         total -= possible[3];
+    //         possible[2] = 0;
+    //         possible[3] = 0;
+    //     }
+    //     while((wr == 6 || ((wr == 2|| wr == 3) && lendeck > 7))){ // conserve see the future 
+    //         // cout << vectorToString(possible) << total << "\n";
+    //         // cout << "oops stuck" << stuckno << "\n";
+    //         stuckno += 1;
+    //         wr = weightedRandom(possible, total);
+    //         // cout
+    //     }
+    //     return wr;
+    // }
+    // else{
+
+        int wr = weightedRandom(possible,total);
+        return wr;
+    // }
     // }
 
 
@@ -165,15 +231,16 @@ class Player{
         int opDefuse;
         // int decklen;
 
-        Player(int n, vector<int> h, int dl){
+        Player(int n, vector<int> h, int dl, vector<int> unex){
             name = n;
             hand = h;
             numCards = accumulate(h.begin(),h.end(),0);
-            hidden = {4, 5, 4, 4, 4, 4, 5, 4, 4, 4, 4, 4};
+            // hidden = {4, 5, 4, 4, 4, 4, 5, 4, 4, 4, 4, 4};
+            hidden = unex;
             numPlayable = hand[2]+hand[3]+hand[4]+hand[5]+hand[6]+hand[7]/2+hand[8]/2+hand[9]/2+hand[10]/2+hand[11]/2;
-            for(int i=0;i<12;i++){
-                hidden[i]-=hand[i];
-            }
+            // for(int i=0;i<12;i++){
+            //     hidden[i]-=hand[i];
+            // }
             opDefuse = 1;
             // decklen = dl;
         }
@@ -183,7 +250,7 @@ class Player{
                 if(cardtaken>=2 && cardtaken<=6){
                     numPlayable-=1;
                 }
-                else if(cardtaken >= 7 and hand[cardtaken]%2==1){
+                else if(cardtaken >= 7 && hand[cardtaken]%2==1){
                     numPlayable-=1;
                 }
                 if(cardtaken==0){
@@ -196,37 +263,45 @@ class Player{
                 //favor logic done in game simulation
                 hidden[cardtaken] += 1;
             }
-            else if(player==name && (move==4 || move>=7)){ //gain a card
+            else if(player==name && (move==4 || move>=7) && victim!=-999){ //gain a card
+                hidden[cardtaken] -= 1;
                 if(cardtaken>=2 && cardtaken<=6){
                     numPlayable+=1;
                 }
-                else if(cardtaken >= 7 and hand[cardtaken]%2==0){
+                else if(cardtaken >= 7 && hand[cardtaken]%2==0){
                     numPlayable+=1;
                 }
                 if(cardtaken==0){
                     opDefuse -= 1;
+                    if(opDefuse < 0){
+                        opDefuse = 0;
+                    }
                     // if(opDefuse < 0){cout << "Negative! something went wrong lol \n"; cin.get();}
                 }
-                hidden[cardtaken] -= 1;
-                if(hidden[cardtaken] < 0){cout << "Negative! something went wrong lol2 \n"; cin.get();}
+                // hidden[cardtaken] -= 1;
+                if(hidden[cardtaken] < 0){cout << "Negative! something went wrong lol2 \n" << vectorToString(hidden); cin.get();}
             }
-            if(player!=name and move > 0){
+            if(player!=name and move > 0 && victim==-999){
                 hidden[move] -= 1;
                 if(move >= 7){
                     hidden[move] -= 1;
                 }
-                if(hidden[move] < 0){cout << "Negative! something went wrong lol4 \n"; cin.get();}
+                if(hidden[move] < 0){cout << "Negative! something went wrong lol4 \n" << vectorToString(hidden); cin.get();}
             }
             if(player!=name and move == -1){
                 hidden[0] -= 1;
                 opDefuse -= 1;
+                if(hidden[0] < 0){cout << "Negative! something went wrong lol5 \n" << vectorToString(hidden); cin.get();}
+                if(opDefuse < 0){
+                    opDefuse = 0;
+                }
             }
-            if(move==0){
+            // if(move==0){
                 // decklen -= 1;
                 // if(decklen < 0){
                 //     cout << "oopsies\n";
                 // }
-            }
+            // }
             // if(move==-1){
             //     decklen += 1;
             // }
@@ -234,17 +309,38 @@ class Player{
         }
 
         int getMove(int toDraw, int deckhandlens, int lendeck, int inception){
-            // if(inception==0){
-            //     vector<int> psbmoves = {0,0,0,0,0,0,0,0,0,0,0,0};
-            //     pair<int, int> winpair = simulateGame2(2,hidden,hand,decklen,"theirs",toDraw,)
-            // }
-            // else{
+            if(inception==0 and name==0){
+                vector<int> psbmoves = {0,0,0,0,0,0,0,0,0,0,0,0};
+                vector<int> blank = {};
+                for(int i=0;i<10000;i++){
+                    pair<int, int> winpair = simulateGame2(2,hidden,hand,lendeck,deckhandlens,toDraw,name,opDefuse,blank);
+                    int initmove = winpair.first;
+                    int wonplayer = winpair.second;
+                    if(wonplayer==name){
+                        psbmoves[initmove] += 1;
+                    }
+                }
+                int movemax = -9;
+                int maxat = -9;
+                for(int i=0;i<12;i++){
+                    if(psbmoves[i] > movemax){
+                        movemax = psbmoves[i];
+                        maxat = i;
+                    }
+                }
+                // cout << vectorToString(psbmoves) << maxat << " " << accumulate(psbmoves.begin(),psbmoves.end(),0)<< vectorToString(hand) << lendeck << maxat << "\n";
+                return maxat;
+                
+                
+                // pair<int, int> winpair = simulateGame2(2,hidden,hand,decklen,"theirs",toDraw,)
+            }
+            else{
                 int chosenmove = giveRandomMove(hand, name, deckhandlens, numPlayable, lendeck, toDraw);
                 if(chosenmove!=0){
                     numPlayable -= 1;
                 }
                 return chosenmove;
-            // }
+            }
         }
 
         int cardDrawn(int card){
@@ -322,7 +418,12 @@ class Player{
         }
 
         int reinsertEK(int decklen){
-            return rand()%(decklen+1);
+            // if(name==1){
+                return rand()%(decklen+1);
+            // }
+            // else{
+                return 0;
+            // }
         }
 
         bool askNope(int toDraw, int move, int deckhandlens){
@@ -394,9 +495,11 @@ pair<int,int> simulateGame(int players){
     }
 
 
+    //op has a defuse!
+    startingcards[0] += 1;
 
     
-
+    // cout << "testor" <<  accumulate(startingcards.begin(), startingcards.end(), 0)-7 << "\n";
     return simulateGame2(2,startingcards,yours,35,8,1,0,1,deck);
 }
 
@@ -407,9 +510,9 @@ pair<int,int> simulateGame(int players){
 // deckifgiven is nonempty if it is an initial call, empty if it is! (because why would you know what's in the deck?)
 pair<int,int> simulateGame2(int players, vector<int> unexposed, vector<int> yours, int lenDeck, int theirs, int toDraw, int turn, int opDefuse, vector<int> deckifgiven){
 // int simulateGame(int players){
-    
+    // cin.get();
     vector<Player> PLAYERS = {};
-    
+    // int numMoves = 0;
     vector<int> deck = {};
     if(deckifgiven.size()==0){
         for(int i=1;i<12;i++){
@@ -420,9 +523,23 @@ pair<int,int> simulateGame2(int players, vector<int> unexposed, vector<int> your
         shuffle(deck.begin(),deck.end(),g);
     }
     else{
+        // cout << "hi\n";
         deck = deckifgiven;
     }
+    // for(int j=0;j<4-opDefuse-yours[0];j++){
+    //     deck.push_back(0);
+    // }
+    for(int j=0;j<unexposed[0]-opDefuse;j++){
+        deck.push_back(0);
+    }
 
+    shuffle(deck.begin(),deck.end(),g);
+
+
+    // cout << "DECKMADE" << vectorToString(deck) << "\n";
+    // cout << "UNEX" << vectorToString(unexposed) << "\n";
+    // cout << "YOURS" << vectorToString(yours) << "\n";
+    // cout << "OPDEFUSE" << opDefuse << "\n";
     int inception = 0;
     if(deckifgiven.size()==0){
         inception += 1;
@@ -430,11 +547,13 @@ pair<int,int> simulateGame2(int players, vector<int> unexposed, vector<int> your
     // cout << deck.size() << "\n";
 
 
-    PLAYERS.push_back(Player(0,yours,lenDeck));
+    PLAYERS.push_back(Player(0,yours,lenDeck,unexposed));
 
     vector<int> ophand = {0,0,0,0,0,0,0,0,0,0,0,0};
     for(int j=0;j<theirs-opDefuse;j++){
-        ophand[deck.back()] += 1;
+        // cout << vectorToString(deck) << "\n";
+        // cout << deck[deck.size()-1] << " " << lenDeck << " " << vectorToString(yours) << theirs << opDefuse << "\n";
+        ophand[deck[deck.size()-1]] += 1;
         deck.pop_back();
     }
     for(int j = 0;j<opDefuse;j++){
@@ -442,14 +561,18 @@ pair<int,int> simulateGame2(int players, vector<int> unexposed, vector<int> your
 
     }
     
+    vector<int> newunex = {0,0,0,0,0,0,0,0,0,0,0,0};
+    for(int j=0;j<12;j++){
+        newunex[j] += unexposed[j];
+        newunex[j] += yours[j];
+        newunex[j] -= ophand[j];
+    }
 
-    PLAYERS.push_back(Player(1,ophand,lenDeck));
+    PLAYERS.push_back(Player(1,ophand,lenDeck, newunex));
 
 
     
-    for(int j=0;j<4-opDefuse-yours[0];j++){
-        deck.push_back(0);
-    }
+
     deck.push_back(-1);
     shuffle(deck.begin(),deck.end(),g); 
     int victim = turn^1;
@@ -459,6 +582,9 @@ pair<int,int> simulateGame2(int players, vector<int> unexposed, vector<int> your
     vector<pair<uint64_t,int>> firstfavored;
     vector<pair<uint64_t,int>> secondfavored;
     
+    // if(inception==1){
+    //     cout << vectorToString(unexposed) << vectorToString(yours) << vectorToString(PLAYERS[1].hand) << "\n";
+    // }
     
     // cout << "init: " << vectorToString(unexposed) << vectorToString(yours) << vectorToString(PLAYERS[1].hand) << opDefuse+"\n";
     // vector<int> deck = {1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 10, 10, 10, 10, 11, 11, 11, 11};
@@ -488,6 +614,11 @@ pair<int,int> simulateGame2(int players, vector<int> unexposed, vector<int> your
     // vector<pair<uint64_t,int>> secondfavored;
     
     int initmove = -1000;
+
+    // if(inception == 0){
+    // cout << "newgame" << inception << "\n";
+    // cout << "ux" << vectorToString(unexposed) << "\n";
+    //}
     while(toDraw>0 && PLAYERS.size()>1){
         int move = 999;
         int simpcards = 999;
@@ -500,7 +631,7 @@ pair<int,int> simulateGame2(int players, vector<int> unexposed, vector<int> your
         else{
             simpcards = deck.size();
         }
-
+        numMoves += 1;
 
         while(move != 0){
             move = PLAYERS[turn].getMove(toDraw,PLAYERS[victim].numCards, deck.size(), inception);
@@ -515,7 +646,23 @@ pair<int,int> simulateGame2(int players, vector<int> unexposed, vector<int> your
             //     cout << move << " " << deck.size() << PLAYERS[0].decklen << PLAYERS[1].decklen;
             //     cin.get();
             // }
-            // cout << turn << " "<< move << " " << vectorToString(PLAYERS[0].hand) << vectorToString(PLAYERS[1].hand) << victim  << vectorToString(PLAYERS[0].hidden) << vectorToString(PLAYERS[1].hidden) << PLAYERS[0].opDefuse << PLAYERS[1].opDefuse << "\n"; 
+
+            // if(inception==1){
+            //   cout << turn << " "<< move << " " << vectorToString(PLAYERS[0].hand) << vectorToString(PLAYERS[1].hand) << victim  << vectorToString(PLAYERS[0].hidden) << vectorToString(PLAYERS[1].hidden) << PLAYERS[0].opDefuse << PLAYERS[1].opDefuse << "\n";         
+            // }
+            // if(inception==0){
+                // cout << turn << " "<< move << "|" << PLAYERS[0].hand[0] << " " << PLAYERS[1].hand[0] << " " <<  PLAYERS[0].hidden[0] << " " << PLAYERS[1].hidden[0] << vectorToString(PLAYERS[0].hand) << PLAYERS[0].numPlayable << vectorToString(PLAYERS[1].hand) << PLAYERS[1].numPlayable << " " << victim  << vectorToString(PLAYERS[0].hidden) << vectorToString(PLAYERS[1].hidden) << PLAYERS[0].opDefuse << PLAYERS[1].opDefuse << "\n" << vectorToString(deck) << "\n"; 
+            // }
+            if(deck.size() == 1){
+                if(PLAYERS[0].hand != PLAYERS[1].hidden || PLAYERS[0].hidden != PLAYERS[1].hand){
+                    cout << "fail \n";
+                    cin.get();
+                }
+            }
+            if(PLAYERS[1].hand[0] > PLAYERS[0].hidden[0] || PLAYERS[0].hand[0] > PLAYERS[1].hidden[0]){
+                cout << "Oops right here\n";
+                cin.get();
+            }
             // cin.get();
             if(move!=0){
                 PLAYERS[turn].numCards -= 1;
@@ -579,10 +726,10 @@ pair<int,int> simulateGame2(int players, vector<int> unexposed, vector<int> your
 
             // cout << "After op" << " " << vectorToString(PLAYERS[0].hand) << vectorToString(PLAYERS[1].hand) << "\n\n"; 
             
-            if(move != 4 and move < 7){ // not a favor or a cat card
-                PLAYERS[0].inform(turn,move,-999,-999);
-                PLAYERS[1].inform(turn,move,-999,-999);
-            }
+            // if(move != 4 and move < 7){ // not a favor or a cat card
+            PLAYERS[0].inform(turn,move,-999,-999);
+            PLAYERS[1].inform(turn,move,-999,-999);
+            // }
             if(move==0){
                 continue;
             }
@@ -657,8 +804,8 @@ pair<int,int> simulateGame2(int players, vector<int> unexposed, vector<int> your
         else{
             if(safe==1){
                 //tell everyone you drew an exploding kitten!
-                PLAYERS[0].inform(0,-1,-1000,-1000);
-                PLAYERS[1].inform(1,-1,-1000,-1000);
+                PLAYERS[0].inform(turn,-1,-1000,-1000);
+                PLAYERS[1].inform(turn,-1,-1000,-1000);
                 if(deck.size()==0){
                     deck.push_back(-1);
                 }
@@ -686,6 +833,9 @@ pair<int,int> simulateGame2(int players, vector<int> unexposed, vector<int> your
     //     logtodict(firstfavored,totalfavors,0);
     //     logtodict(secondfavored,totalfavors,1);   
     // }
+    // if(inception == 0){
+    //     cout << numMoves << "\n";
+    // }
     pair<int, int> a = {initmove, PLAYERS[0].name};
     return a;
 
@@ -698,7 +848,7 @@ int main(){
     int wins = 0;
 
 
-    int run = 1'000'00;
+    int run = 1'00;
     // int run = 1'000'000;
 
     for(int i=0;i<run;i++){
@@ -706,6 +856,7 @@ int main(){
         if(winpair.second==0){
             wins += 1;
         }
+        cout << winpair.second << " " << wins << " "<< i << "\n";
     }
 
     auto end = chrono::high_resolution_clock::now();
@@ -723,6 +874,7 @@ int main(){
 
     cout << "totalnumberofstates (incl. repeats): " << numberofstates << "\n";
     cout << (wins+0.0)/run << "\n";
+    cout << (numMoves+0.0)/run; //30.9787
 
 }
 

@@ -1,5 +1,9 @@
 clear && echo "Start" && \
+# g++ -std=c++17 main.cpp -o main.out \
+# -O0 -march=native -flto -ffast-math -funroll-loops -g && \
 g++ -std=c++17 main.cpp -o main.out \
--O2 -march=native -flto -ffast-math -funroll-loops && \
+-O3 -march=native -flto -ffast-math -funroll-loops -g && \
+
+
 echo "compiled"
 ./main.out
