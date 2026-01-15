@@ -23,8 +23,6 @@ Most of the `main` branch is my direct algorithm, which just implements my perso
 ### PPO
 Branches: `rltest`
 
-THe take
-
 I've found that **PPO isn't really a good idea** for this game due to the **high input space**. For example, the [typical example](https://keras.io/examples/rl/ppo_cartpole/) of balancing a pole only requires four dimensions of its observations pace: a pole velocity (continuous).
 
 However, in the case of exploding kittens, there are 55 cards in the deck, the opponent can have anywhere between 0 and 55 cards, and there are 12 cards with between 0 and 6 of each card in the deck. This would mean that PPO isn't really able to infer an optimal policy state since **it hasn't even explored many of the states** at all. Furthermore, these are **discrete values**, meaning that adding or removing a card from play may sharply affect decision making.
@@ -54,8 +52,11 @@ Note: This version doesn't implement see the future cards *yet*. Because the AI 
 
 ### Utility functions
 
-To be added.
+The current approach I am working on uses utility functions of every single card. This is mostly because the value of each different card varies, but is predictable. For example, a defuse card is valuable at the beginning, extremely valuable at the middle of the game, but sharply drops in use when only 1 card is left in the game since it is as useful as a skip card. See the future cards are not so valuable at the start of a game, but can sharply change the endgame's outcome since a player can know where the exploding kitten is an plan moves accordingly.
+
+Therefore, guessing function forms and using an evolutionary algorithm to refine hyperparameters would find the proper "value" of a card at any stage in the game.
 
 ## UI
 I've also worked on a UI accessible on the `ui` branch where players can play the game through a simple Flask server.
+
 
