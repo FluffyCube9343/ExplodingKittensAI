@@ -14,7 +14,7 @@ class Player: #RandomPlayer
         self.numPlayable = sum(hand[2:7]) + sum([hand[i]//2 for i in range(7,12)])
         self.numCards = 8
         self.hand = hand
-    
+
     def inform(self, player, move, moveData):
         if(player!=self.name and move>=7 and moveData['victim']==int(self.name)):
             cardtaken = moveData['cardtaken']
@@ -26,7 +26,7 @@ class Player: #RandomPlayer
             if(2<=cardtaken<=6): self.numPlayable += 1
             elif(cardtaken >= 7 and self.hand[cardtaken]%2==0): self.numPlayable += 1
 
-        
+
     def getMove(self, toDraw, movectr, turnctr, deckhandlens):
         #Return None = draw ONE card
         chosenmove = giveRandomMove(self.hand,self.name,deckhandlens, self.numPlayable)
@@ -61,7 +61,7 @@ class Player: #RandomPlayer
         return int(random.random()*(decklen+1))
         # return random.randint(0,decklen)
 
-    
+
 
 
 class ARPlayer(Player): #AlternateRandomPlayeri
@@ -88,7 +88,7 @@ class CommonSensePlayer(Player): #CommonSensePlayer
         #Return None = draw ONE card
         if(movectr not in self.movehistory): self.movehistory[movectr] = set()
         presets = {}
-        
+
         if(6 in self.movehistory[movectr]): presets[6] = 0
         if(5 in self.movehistory[movectr]): presets[5] = 0
 
@@ -96,7 +96,7 @@ class CommonSensePlayer(Player): #CommonSensePlayer
         # psbls = whatcaniplay(self.hand,self.name,deckhandlens)+[None]
         # chosenmove = random.choice(psbls)
 
-        
+
         self.movehistory[movectr].add(chosenmove)
         return chosenmove
     def getFavored(self):
@@ -117,8 +117,8 @@ class CommonSensePlayer(Player): #CommonSensePlayer
         if(2 <= togiveaway <= 6): self.numPlayable -= 1
         elif(togiveaway >= 7 and self.hand[togiveaway]%2==1): self.numPlayable -= 1
         return togiveaway
-            
-            
+
+
 #         chosen = pickable.pop(random.randrange(len(pickable)))
 #         self.hand.remove(chosen)
 #         return chosen
@@ -136,7 +136,7 @@ class RunningPlayer(CommonSensePlayer):
         handset = set(self.hand)
         if(movectr not in self.movehistory): self.movehistory[movectr] = set()
         presets = {6:0}
-        
+
         if(6 in self.movehistory[movectr]): presets[6] = 0
         if(5 in self.movehistory[movectr]): presets[5] = 0
         psbls = givePsbls(self.hand,self.name,deckhandlens,None,presets)
@@ -147,9 +147,9 @@ class RunningPlayer(CommonSensePlayer):
         if(psbls[9]): self.numPlayable -= 1; return 9;
         if(psbls[10]): self.numPlayable -= 1; return 10;
         if(psbls[11]): self.numPlayable -= 1; return 11;
-    
 
-        
+
+
         if(toDraw > 1 and psbls[2]): self.numPlayable -= 1; return 2;
         if(toDraw>1 and psbls[3]): self.numPlayable -= 1; return 3
         if(movectr>40 and psbls[2]): self.numPlayable -= 1; return 2
@@ -162,15 +162,15 @@ class RunningPlayer(CommonSensePlayer):
         chosenmove = random.choices([0,1,2,3,4,5,6,7,8,9,10,11], weights=psbls, k=1)[0]
         if (chosenmove): self.numPlayable -= 1;
         self.movehistory[movectr].add(chosenmove)
-        
+
         # print(self.hand, psbls, self.numPlayable, chosenmove)
         # print(turnctr)
         # input()
         return chosenmove
-    
+
     def reinsertEK(self, decklen):
         # if(not self.hand[0]): resultfile.write(str(decklen)+'\n')
-        return 3
+        return 2
 
 
 def weighted_random_choice(choices, weights):
@@ -204,16 +204,16 @@ def givePsbls(deck,name,deckhandlens,victim=None,presets={}):
         possible[i] = presets[i]
     return possible
 
-    
+
 def giveRandomMove(deck,name,deckhandlens,numPlayable,victim=None,includeNone=True,presets={}):
-    
+
     if(numPlayable == 0): return None
     # print(numPlayable, deck, deckhandlens)
     if(includeNone and not int(random.random()*(numPlayable+1))): return None
     # if(includeNone and not random.randint(0,numPlayable)): return None
-    
+
     possible = givePsbls(deck, name, deckhandlens, victim, presets)
-    
+
     if(possible==[0]*12): return None
     numbers = [0,1,2,3,4,5,6,7,8,9,10,11]
 
