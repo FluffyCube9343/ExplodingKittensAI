@@ -69,7 +69,9 @@ class Player:
             return False
 
     def gotFavored(self, state): #how else do you resolve a favor, you tell them which card you're giving away
-        pass
+        randcard = random.choices([*range(12)], weights=state.hands[self.playerNum], k=1)[0]
+        state.hands[self.playerNum] -= 1
+        return randcard
 
 
 def dealGame():
@@ -95,10 +97,15 @@ def dealGame():
     pk.playerSizes = [8,8]
     return (p1hand, p2hand, deck, pk)
 
-def run_game():
+def run_game(state):
     pass
 
 def main():
     p1hand, p2hand, deck, pk = dealGame()
     state = GameState()
     state.hands = [p1hand, p2hand]
+    state.deck = deck
+    state.pk = pk
+    run_game(state)
+
+main()
