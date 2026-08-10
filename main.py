@@ -26,7 +26,7 @@ class GameState:
         self.pendingStack = []
         self.curPlayer = 0
         self.turnsLeft = 1
-        self.STFKnowledge = [None,None]
+        self.stfKnowledge = [None,None]
 
 class Player:
     def __init__(self, playerNum):
@@ -102,19 +102,22 @@ def run_game(state, player1, player2):
             pass
         elif(move[0]==2):
             #attack
-            pass
+            state.curPlayer ^= 1
+            state.turnsLeft = 2
         elif(move[0]==3):
             #skip
-            pass
+            state.curPlayer ^= 1
         elif(move[0]==4):
             #favor
             pass
         elif(move[0]==5):
             #shuffle
-            pass
+            random.shuffle(state.deck)
+            state.pk.deckEpoch += 1
         elif(move[0]==6):
             #stf
-            pass
+            stfobject = STFKnowledge(state.deck[-3:][::-1], state.pk.deckSize, state.pk.deckEpoch)
+            state.stfKnowledge[state.curPlayer] = stfobject
         else:
             #cat card
             pass
