@@ -1,10 +1,12 @@
 import random
 import time
-from players import *
-seed = random.randint(0,100000)
-# seed = 12794
-random.seed(seed)
-print(f'{seed=}')
+from players2 import *
+
+
+def initrandom(seed):
+    random.seed(seed)
+
+
 class PublicKnowledge:
     #EK is -1
     #[DEF, NOPE, ATK, SKIP, FVR, SHUF, STF, C1, C2, C3, C4, C5]
@@ -156,8 +158,32 @@ def run_game(state, player1, player2):
                 state.hands[state.curPlayer^1][cardgiven] -= 1
                 state.hands[state.curPlayer][cardgiven] += 1
 
-def setupGame():
-    global coeffs, drawcoeffs
+def evaluate(coeffs, drawcoeffs,oppcoeffs=None, oppdrawcoeffs=None, ngames=10000):
+    wins = 0
+    for _ in range(ngames):
+        p1hand, p2hand, deck, pk = dealGame()
+        state = GameState()
+        state.hands = [p1hand, p2hand]
+        state.deck = deck
+        state.pk = pk
+
+
+        isp2 = random.random() < 0.5
+        if(isp2):
+            player1 = Player(0) if not oppcoeffs else PolyPlayer(0,oppcoeffs,oppdrawcoeffs)
+            player2 = PolyPlayer(1, coeffs, drawcoeffs)
+        else:
+            player1 = PolyPlayer(0, coeffs, drawcoeffs)
+            player2 = Player(1) if not oppcoeffs else PolyPlayer(1,oppcoeffs,oppdrawcoeffs)
+
+        whowon = run_game(state,player1,player2)
+        if(whowon == isp2):
+            wins += 1
+    return wins/ngames
+
+
+
+def setupGame(coeffs,drawcoeffs):
     p1hand, p2hand, deck, pk = dealGame()
     state = GameState()
     state.hands = [p1hand, p2hand]
@@ -170,12 +196,12 @@ def setupGame():
     player2 = Player(1)
     return (state, player1, player2)
 
-def main():
+def main(coeffs,drawcoeffs):
     p1w = 0
     p2w = 0
     start = time.time()
-    for _ in range(int(1e4)):
-        states = setupGame()
+    for _ in range(int(1e3)):
+        states = setupGame(coeffs,drawcoeffs)
         whowon = (run_game(*states))
         if(whowon):
             p2w += 1
@@ -186,6 +212,10 @@ def main():
     print("Time", stop-start)
 
 if __name__=='__main__':
+    seed = random.randint(0,100000)
+    # seed = 12794
+    random.seed(seed)
+    print(f'{seed=}')
     coeffs = [[random.random() for i in range(3)] for j in range(12)]
     drawcoeffs = [random.random() for i in range(3)]
-    main()
+    main(coeffs,drawcoeffs)

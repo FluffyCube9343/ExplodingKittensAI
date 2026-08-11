@@ -51,6 +51,12 @@ class PolyPlayer(Player): #a player who uses polynomials to determine best card 
         super().__init__(playerNum)
         self.coeffs = coeffs
         self.drawcoeffs = drawcoeffs
+
+    def getFeatures(self, deckSize, oppHandSize):
+        x = deckSize/17
+        oppnorm = oppHandSize/15
+        return [1,x,x*x,oppnorm,x*oppnorm]
+
     def chooseAction(self, state):
         hand = state.hands[self.playerNum]
         x = state.pk.deckSize #current x value
@@ -61,8 +67,10 @@ class PolyPlayer(Player): #a player who uses polynomials to determine best card 
                 continue
             if card in (4,7,8,9,10,11) and state.pk.playerSizes[self.playerNum^1] == 0: #do not use a card you should not use
                 continue
-            a, b, c = self.coeffs[card]
-            y = a + b*x + c*x*x
+            a, b, c, d, e = self.coeffs[card]
+
+            oppnorm = state.pk.playerSizes[self.playerNum^1]
+            y = a + b*x + c*x*x + d*oppnorm + e*x*oppnorm
             if y < besty:
                 besty = y
                 bestcard = card
