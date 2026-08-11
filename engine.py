@@ -1,6 +1,6 @@
 import random
 import time
-from players2 import *
+from players import *
 
 
 def initrandom(seed):

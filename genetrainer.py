@@ -1,7 +1,7 @@
 import random
 import time
 import numpy as np
-from engine2 import evaluate
+from engine import evaluate
 
 CLIPSIZE = 5
 FEATURES = 5
