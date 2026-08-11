@@ -101,8 +101,12 @@ def dealGame():
 
 def run_game(state, player1, player2):
     while(state.pk.deckSize > 0):
-        me = [player1,player2][state.curPlayer]
-        opp = [player1,player2][state.curPlayer^1]
+        if(not state.curPlayer):
+            me = player1
+            opp = player2
+        else:
+            me = player2
+            opp = player1
         move = me.chooseAction(state)
         # print(state.hands[0], state.hands[1], move, state.deck)
         # assert sum(state.hands[0]) == state.pk.playerSizes[0], f"P0 hand/size mismatch: {state.hands[0]} vs {state.pk.playerSizes[0]}"
