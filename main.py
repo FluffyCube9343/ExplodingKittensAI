@@ -1,5 +1,6 @@
 import random
 import time
+from players import *
 seed = random.randint(0,100000)
 # seed = 12794
 random.seed(seed)
@@ -31,49 +32,6 @@ class GameState:
         self.turnsLeft = 1
         self.stfKnowledge = [None,None]
 
-class Player:
-    def __init__(self, playerNum):
-        self.playerNum = playerNum
-    def chooseAction(self, state): #currently random action for base player
-        modified = list(state.hands[self.playerNum])
-
-        #cannot actually select a action if you can't do said action
-        modified[0] = 0
-        modified[1] = 0
-
-        #for now, you cannot favor or cat card the other player if they have no cards!
-        if(state.pk.playerSizes[self.playerNum^1] == 0):
-            modified[4] = 0
-            modified[7] = 0
-            modified[8] = 0
-            modified[9] = 0
-            modified[10] = 0
-            modified[11] = 0
-        else:
-            modified[7] = modified[7]//2
-            modified[8] = modified[8]//2
-            modified[9] = modified[9]//2
-            modified[10] = modified[10]//2
-            modified[11] = modified[11]//2
-        modified.append(1)
-        randaction = random.choices([*range(12)]+[-1], weights = modified, k=1)[0]
-
-        if(randaction in {4,7,8,9,10,11}):
-            return [randaction, self.playerNum^1]
-        else:
-            return [randaction, -1]
-
-    def askNope(self,state): #returns y/n if nope, contracts that it will deduct/be honest, currently just random
-        if(state.hands[self.playerNum][1] == 0):
-            return False
-        return random.random() < 0.5 #half chance you actually use the move, just for Proof of concept
-
-    def gotFavored(self, state): #how else do you resolve a favor, you tell them which card you're giving away
-        randcard = random.choices([*range(12)], weights=state.hands[self.playerNum], k=1)[0]
-        return randcard
-
-    def reinsertEK(self, state): #at which point in the deck would you return a EK
-        return random.randint(0,state.pk.deckSize)
 
 
 def dealGame():
@@ -199,12 +157,16 @@ def run_game(state, player1, player2):
                 state.hands[state.curPlayer][cardgiven] += 1
 
 def setupGame():
+    global coeffs, drawcoeffs
     p1hand, p2hand, deck, pk = dealGame()
     state = GameState()
     state.hands = [p1hand, p2hand]
     state.deck = deck
     state.pk = pk
-    player1 = Player(0)
+
+    # player1 = Player(0)
+    # player2 = PolyPlayer(1, coeffs)
+    player1 = PolyPlayer(0, coeffs, drawcoeffs)
     player2 = Player(1)
     return (state, player1, player2)
 
@@ -212,7 +174,7 @@ def main():
     p1w = 0
     p2w = 0
     start = time.time()
-    for _ in range(int(1e5)):
+    for _ in range(int(1e4)):
         states = setupGame()
         whowon = (run_game(*states))
         if(whowon):
@@ -222,4 +184,8 @@ def main():
     stop = time.time()
     print(p1w/(p2w+p1w))
     print("Time", stop-start)
-main()
+
+if __name__=='__main__':
+    coeffs = [[random.random() for i in range(3)] for j in range(12)]
+    drawcoeffs = [random.random() for i in range(3)]
+    main()

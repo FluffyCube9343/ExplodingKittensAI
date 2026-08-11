@@ -1,5 +1,7 @@
 ﻿# Exploding Kittens AI
 
+> "He will win who knows how to handle both superior and inferior forces." -- Sun Tzu, *The Art of War*. Also probably my RL professor when teaching robust strategies.
+
 Hello readers! Since July 2024, I've been working on an AI for the Exploding Kittens Game. I've been introduced to this game by a few cousins during the pandemic (maybe November 2020?) and it is by far my favorite card game.
 
 I've also chosen to study this because it places heavy (but somewhat equal) empahsis on **both strategy and chance** unlike other games (e.g. war, chess) where one significantly outweighs the other.
@@ -58,5 +60,3 @@ Therefore, guessing function forms and using an evolutionary algorithm to refine
 
 ## UI
 I've also worked on a UI accessible on the `ui` branch where players can play the game through a simple Flask server.
-
-
