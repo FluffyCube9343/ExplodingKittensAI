@@ -19,10 +19,12 @@ python engine.py
 ## Methods
 
 ### Direct Algorithm
-Branches: `main` (most recent).
-Note: prior optimizations done on `numpystuffs`, but have been merged to `main`.
+Branches: `directalgo` (most recent).
+Note: prior optimizations done on `numpystuffs`, but have been merged to `directalgo`.
 
-Most of the `main` branch is my direct algorithm, which just implements my personal strategy for the exploding kittens game. This is usually something along the lines of (and later fine-tuned in code):
+Previously held on `main`, moved away to `directalgo` for evolutionary algorithm.
+
+Most of the `directalgo` branch is my direct algorithm, which just implements my personal strategy for the exploding kittens game. This is usually something along the lines of (and later fine-tuned in code):
 
 - Draw card if there are a large number of cards in the deck (M
 - Play **cat cards** or **favor cards** as early as possible, which is when opponentshave less cards (greater chance of obtaining a **Defuse**)
