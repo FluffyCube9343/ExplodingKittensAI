@@ -1,6 +1,7 @@
 import random
 import time
 from players import *
+from bestparams import *
 
 
 def initrandom(seed):
@@ -205,7 +206,7 @@ def main(coeffs,drawcoeffs,retaincoeffs):
     p1w = 0
     p2w = 0
     start = time.time()
-    for _ in range(int(1e3)):
+    for _ in range(int(1e5)):
         states = setupGame(coeffs,drawcoeffs,retaincoeffs)
         whowon = (run_game(*states))
         if(whowon):
@@ -221,7 +222,10 @@ if __name__=='__main__':
     # seed = 12794
     random.seed(seed)
     print(f'{seed=}')
-    coeffs = [[random.random() for i in range(5)] for j in range(8)]
-    drawcoeffs = [random.random() for i in range(5)]
-    retaincoeffs = [[random.random() for i in range(5)] for j in range(8)]
+    coeffs = bestcoeffs
+    drawcoeffs = bestdrawcoeffs
+    retaincoeffs = bestretaincoeffs
+    # coeffs = [[random.random() for i in range(5)] for j in range(8)]
+    # drawcoeffs = [random.random() for i in range(5)]
+    # retaincoeffs = [[random.random() for i in range(5)] for j in range(8)]
     main(coeffs,drawcoeffs,retaincoeffs)
