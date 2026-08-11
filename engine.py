@@ -94,6 +94,11 @@ def run_game(state, player1, player2):
             state.hands[state.curPlayer][move[0]] -= 1
             state.pk.playerSizes[state.curPlayer] -= 1
             state.pk.discardFreq[move[0]] += 1
+        if(move[0] >= 7):
+            #do it again
+            state.hands[state.curPlayer][move[0]] -= 1
+            state.pk.playerSizes[state.curPlayer] -= 1
+            state.pk.discardFreq[move[0]] += 1
 
         if(move[0]==-1):
             #draw

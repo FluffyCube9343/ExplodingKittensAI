@@ -65,6 +65,8 @@ class PolyPlayer(Player):  # a player who uses a linear model over features to d
         for card in range(12):
             if hand[card] == 0 or card == 0 or card == 1:  # do not use a card you cannot use
                 continue
+            if card in (7,8,9,10,11) and state.hands[self.playerNum][card] < 2:
+                continue
             if card in (4,7,8,9,10,11) and oppHandSize == 0:  # do not use a card you should not use
                 continue
             a, b, c, d, e = self.coeffs[min(card,7)]
