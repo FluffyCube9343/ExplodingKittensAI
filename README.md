@@ -8,6 +8,14 @@ I've also chosen to study this because it places heavy (but somewhat equal) empa
 
 It's also why I've become **heavily interested in game theory**.
 
+## Usage
+
+Current: 
+
+```
+python engine.py
+```
+
 ## Methods
 
 ### Direct Algorithm
@@ -52,11 +60,22 @@ Interestingly this still didn't beat my direct algorithm, even after a few modif
 
 Note: This version doesn't implement see the future cards *yet*. Because the AI also **hoards see the future cards**, I would expect that the winrate can soar over **90%** since **it often fails near the end**, when it already has many see the future cards to know that an Exploding Kitten exists.
 
-### Utility functions
+### Current work: Utility functions and evolutionary algorithms
+Branches: `main` (merged from `engine2`)
 
 The current approach I am working on uses utility functions of every single card. This is mostly because the value of each different card varies, but is predictable. For example, a defuse card is valuable at the beginning, extremely valuable at the middle of the game, but sharply drops in use when only 1 card is left in the game since it is as useful as a skip card. See the future cards are not so valuable at the start of a game, but can sharply change the endgame's outcome since a player can know where the exploding kitten is an plan moves accordingly.
 
 Therefore, guessing function forms and using an evolutionary algorithm to refine hyperparameters would find the proper "value" of a card at any stage in the game.
+
+Currently the approach is to initialize 17 functions of 17 parameters. 9 functions are used to determine the value of drawing and all possible **playable** moves, and 8 functions are used to determine the value of a card if given to a favor. The 17 parameters include the size of the deck, its transforms, the size of the opponent's hand, and the discard pile's exact card counts.
+
+I might try exploring a few more robust strategies that may not necessarily have the best winrate against a random opponent, but have decent winrates against the other strategies. The problem was the only testing I could do was with previous evolved strategies, which isn't particularly representative of global Exploding Kittens strategies.
+
+**Winrate: ~91.5%**
+
+Note: I also **heavily overhauled** the engine to be as intuitive and bug-free as possible for potential future development. Yes, it's not as fast as `monte4`, but will do for now. Also exceptionally fast code isn't as required for an evolutionary algorithm as it is for a Monte Carlo Tree Search.
+
+TODO: incorporate the actual card counts in hand (e.g. having 2 attacks is better than having 1) as parameters
 
 ## UI
 I've also worked on a UI accessible on the `ui` branch where players can play the game through a simple Flask server.
