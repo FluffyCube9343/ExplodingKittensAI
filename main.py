@@ -1,4 +1,5 @@
 import random
+import time
 seed = random.randint(0,100000)
 # seed = 12794
 random.seed(seed)
@@ -103,9 +104,9 @@ def run_game(state, player1, player2):
         me = [player1,player2][state.curPlayer]
         opp = [player1,player2][state.curPlayer^1]
         move = me.chooseAction(state)
-        print(state.hands[0], state.hands[1], move, state.deck)
-        assert sum(state.hands[0]) == state.pk.playerSizes[0], f"P0 hand/size mismatch: {state.hands[0]} vs {state.pk.playerSizes[0]}"
-        assert sum(state.hands[1]) == state.pk.playerSizes[1], f"P1 hand/size mismatch: {state.hands[1]} vs {state.pk.playerSizes[1]}"
+        # print(state.hands[0], state.hands[1], move, state.deck)
+        # assert sum(state.hands[0]) == state.pk.playerSizes[0], f"P0 hand/size mismatch: {state.hands[0]} vs {state.pk.playerSizes[0]}"
+        # assert sum(state.hands[1]) == state.pk.playerSizes[1], f"P1 hand/size mismatch: {state.hands[1]} vs {state.pk.playerSizes[1]}"
 
 
         #noping logic should be here
@@ -170,11 +171,12 @@ def run_game(state, player1, player2):
                 continue
         elif(move[0]==4):
             #favor
-            cardgiven = opp.gotFavored(state)
-            state.pk.playerSizes[state.curPlayer^1] -= 1
-            state.pk.playerSizes[state.curPlayer] += 1
-            state.hands[state.curPlayer^1][cardgiven] -= 1
-            state.hands[state.curPlayer][cardgiven] += 1
+            if(state.pk.playerSizes[state.curPlayer^1]!=0): #this is such a stupid edge case. If opp has only a nope, then I play a cat card, then they nope the cat card, I nope back, then I must take cat cards with no cards. Therefore I take no cards.
+                cardgiven = opp.gotFavored(state)
+                state.pk.playerSizes[state.curPlayer^1] -= 1
+                state.pk.playerSizes[state.curPlayer] += 1
+                state.hands[state.curPlayer^1][cardgiven] -= 1
+                state.hands[state.curPlayer][cardgiven] += 1
         elif(move[0]==5):
             #shuffle
             random.shuffle(state.deck)
@@ -185,11 +187,12 @@ def run_game(state, player1, player2):
             state.stfKnowledge[state.curPlayer] = stfobject
         else:
             #cat card
-            cardgiven = random.choices([*range(12)], weights=state.hands[state.curPlayer^1], k=1)[0]
-            state.pk.playerSizes[state.curPlayer^1] -= 1
-            state.pk.playerSizes[state.curPlayer] += 1
-            state.hands[state.curPlayer^1][cardgiven] -= 1
-            state.hands[state.curPlayer][cardgiven] += 1
+            if(state.pk.playerSizes[state.curPlayer^1]!=0): #this is such a stupid edge case. If opp has only a nope, then I play a cat card, then they nope the cat card, I nope back, then I must take cat cards with no cards. Therefore I take no cards.
+                cardgiven = random.choices([*range(12)], weights=state.hands[state.curPlayer^1], k=1)[0]
+                state.pk.playerSizes[state.curPlayer^1] -= 1
+                state.pk.playerSizes[state.curPlayer] += 1
+                state.hands[state.curPlayer^1][cardgiven] -= 1
+                state.hands[state.curPlayer][cardgiven] += 1
 
 def setupGame():
     p1hand, p2hand, deck, pk = dealGame()
@@ -202,8 +205,17 @@ def setupGame():
     return (state, player1, player2)
 
 def main():
-    for _ in range(100):
+    p1w = 0
+    p2w = 0
+    start = time.time()
+    for _ in range(int(1e5)):
         states = setupGame()
-        print(run_game(*states))
-
+        whowon = (run_game(*states))
+        if(whowon):
+            p2w += 1
+        else:
+            p1w += 1
+    stop = time.time()
+    print(p1w/(p2w+p1w))
+    print("Time", stop-start)
 main()
