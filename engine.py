@@ -163,7 +163,7 @@ def run_game(state, player1, player2):
                 state.hands[state.curPlayer^1][cardgiven] -= 1
                 state.hands[state.curPlayer][cardgiven] += 1
 
-def evaluate(coeffs, drawcoeffs,oppcoeffs=None, oppdrawcoeffs=None, ngames=10000):
+def evaluate(coeffs, drawcoeffs, retaincoeffs, oppcoeffs=None, oppdrawcoeffs=None, oppretaincoeffs=None, ngames=10000):
     wins = 0
     for _ in range(ngames):
         p1hand, p2hand, deck, pk = dealGame()
@@ -175,11 +175,11 @@ def evaluate(coeffs, drawcoeffs,oppcoeffs=None, oppdrawcoeffs=None, ngames=10000
 
         isp2 = random.random() < 0.5
         if(isp2):
-            player1 = Player(0) if not oppcoeffs else PolyPlayer(0,oppcoeffs,oppdrawcoeffs)
-            player2 = PolyPlayer(1, coeffs, drawcoeffs)
+            player1 = Player(0) if not oppcoeffs else PolyPlayer(0,oppcoeffs,oppdrawcoeffs,oppretaincoeffs)
+            player2 = PolyPlayer(1, coeffs, drawcoeffs, retaincoeffs)
         else:
-            player1 = PolyPlayer(0, coeffs, drawcoeffs)
-            player2 = Player(1) if not oppcoeffs else PolyPlayer(1,oppcoeffs,oppdrawcoeffs)
+            player1 = PolyPlayer(0, coeffs, drawcoeffs, retaincoeffs)
+            player2 = Player(1) if not oppcoeffs else PolyPlayer(1,oppcoeffs,oppdrawcoeffs,oppretaincoeffs)
 
         whowon = run_game(state,player1,player2)
         if(whowon == isp2):
@@ -188,7 +188,7 @@ def evaluate(coeffs, drawcoeffs,oppcoeffs=None, oppdrawcoeffs=None, ngames=10000
 
 
 
-def setupGame(coeffs,drawcoeffs):
+def setupGame(coeffs,drawcoeffs,retaincoeffs):
     p1hand, p2hand, deck, pk = dealGame()
     state = GameState()
     state.hands = [p1hand, p2hand]
@@ -197,16 +197,16 @@ def setupGame(coeffs,drawcoeffs):
 
     # player1 = Player(0)
     # player2 = PolyPlayer(1, coeffs)
-    player1 = PolyPlayer(0, coeffs, drawcoeffs)
+    player1 = PolyPlayer(0, coeffs, drawcoeffs, retaincoeffs)
     player2 = Player(1)
     return (state, player1, player2)
 
-def main(coeffs,drawcoeffs):
+def main(coeffs,drawcoeffs,retaincoeffs):
     p1w = 0
     p2w = 0
     start = time.time()
     for _ in range(int(1e3)):
-        states = setupGame(coeffs,drawcoeffs)
+        states = setupGame(coeffs,drawcoeffs,retaincoeffs)
         whowon = (run_game(*states))
         if(whowon):
             p2w += 1
@@ -223,4 +223,5 @@ if __name__=='__main__':
     print(f'{seed=}')
     coeffs = [[random.random() for i in range(5)] for j in range(8)]
     drawcoeffs = [random.random() for i in range(5)]
-    main(coeffs,drawcoeffs)
+    retaincoeffs = [[random.random() for i in range(5)] for j in range(8)]
+    main(coeffs,drawcoeffs,retaincoeffs)

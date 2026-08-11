@@ -47,10 +47,11 @@ class Player: #a player that acts entirely randomly
 
 
 class PolyPlayer(Player):  # a player who uses a linear model over features to determine best card fit
-    def __init__(self, playerNum, coeffs, drawcoeffs):
+    def __init__(self, playerNum, coeffs, drawcoeffs, retaincoeffs):
         super().__init__(playerNum)
         self.coeffs = coeffs
         self.drawcoeffs = drawcoeffs
+        self.retaincoeffs = retaincoeffs
     def getFeatures(self, deckSize, oppHandSize):
         x = deckSize/17
         oppnorm = oppHandSize/15
@@ -90,3 +91,36 @@ class PolyPlayer(Player):  # a player who uses a linear model over features to d
         y = max(-500.0, min(500.0, y))  # clip before exponentiating to avoid overflow
         p = 1/(1+math.exp(y))
         return random.random() < p
+
+    def gotFavored(self, state):
+        hand = state.hands[self.playerNum]
+        deckSize = state.pk.deckSize
+        requesterHandSize = state.pk.playerSizes[self.playerNum ^ 1]
+        feats = self.getFeatures(deckSize, requesterHandSize)
+
+        worstcard = -1
+        worsty = float('-inf')
+        for card in range(12):
+            if card == 0 or card == 1 or hand[card] == 0:  # never give away defuse or nope
+                continue
+            a, b, c, d, e = self.retaincoeffs[min(card,7)]
+            f1, f2, f3, f4, f5 = feats
+            y = a*f1+b*f2+c*f3+d*f4+e*f5
+            if y>worsty:  # highest retain-score = most disposable
+                worsty=y
+                worstcard=card
+
+        if worstcard != -1:
+            return worstcard
+
+        # forced case: hand is entirely defuse/nope -- let retaincoeffs[0]/[1] decide
+        if hand[0] == 0:
+            return 1
+        if hand[1] == 0:
+            return 0
+        a0, b0, c0, d0, e0 = self.retaincoeffs[0]
+        a1, b1, c1, d1, e1 = self.retaincoeffs[1]
+        f1, f2, f3, f4, f5 = feats
+        y0 = a0*f1+b0*f2+c0*f3+d0*f4+e0*f5
+        y1 = a1*f1+b1*f2+c1*f3+d1*f4+e1*f5
+        return 1 if y1 > y0 else 0
