@@ -52,15 +52,16 @@ class PolyPlayer(Player):  # a player who uses a linear model over features to d
         self.coeffs = coeffs
         self.drawcoeffs = drawcoeffs
         self.retaincoeffs = retaincoeffs
-    def getFeatures(self, deckSize, oppHandSize):
+    def getFeatures(self, deckSize, oppHandSize, discardFreq):
         x = deckSize/17
         oppnorm = oppHandSize/15
-        return [1, x, x*x, oppnorm, x*oppnorm]
+        discard_norm = [discardFreq[i]/4 for i in range(12)]
+        return [1, x, x*x, oppnorm, x*oppnorm] + discard_norm
     def chooseAction(self, state):
         hand = state.hands[self.playerNum]
         deckSize = state.pk.deckSize
         oppHandSize = state.pk.playerSizes[self.playerNum ^ 1]
-        feats = self.getFeatures(deckSize, oppHandSize)
+        feats = self.getFeatures(deckSize, oppHandSize, state.pk.discardFreq)
         bestcard = -1
         besty = float('inf')
         for card in range(12):
@@ -70,9 +71,7 @@ class PolyPlayer(Player):  # a player who uses a linear model over features to d
                 continue
             if card in (4,7,8,9,10,11) and oppHandSize == 0:  # do not use a card you should not use
                 continue
-            a, b, c, d, e = self.coeffs[min(card,7)]
-            f1, f2, f3, f4, f5 = feats
-            y = a*f1+b*f2+c*f3+d*f4+e*f5
+            y = sum(c*f for c, f in zip(self.coeffs[min(card,7)], feats))
             if y < besty:
                 besty = y
                 bestcard = card
@@ -86,7 +85,7 @@ class PolyPlayer(Player):  # a player who uses a linear model over features to d
             return False
         deckSize = state.pk.deckSize
         oppHandSize = state.pk.playerSizes[self.playerNum ^ 1]
-        feats = self.getFeatures(deckSize, oppHandSize)
+        feats = self.getFeatures(deckSize, oppHandSize, state.pk.discardFreq)
         y = sum(c*f for c, f in zip(self.coeffs[1], feats))
         y = max(-500.0, min(500.0, y))  # clip before exponentiating to avoid overflow
         p = 1/(1+math.exp(y))
@@ -96,16 +95,14 @@ class PolyPlayer(Player):  # a player who uses a linear model over features to d
         hand = state.hands[self.playerNum]
         deckSize = state.pk.deckSize
         requesterHandSize = state.pk.playerSizes[self.playerNum ^ 1]
-        feats = self.getFeatures(deckSize, requesterHandSize)
+        feats = self.getFeatures(deckSize, requesterHandSize, state.pk.discardFreq)
 
         worstcard = -1
         worsty = float('-inf')
         for card in range(12):
             if card == 0 or card == 1 or hand[card] == 0:  # never give away defuse or nope
                 continue
-            a, b, c, d, e = self.retaincoeffs[min(card,7)]
-            f1, f2, f3, f4, f5 = feats
-            y = a*f1+b*f2+c*f3+d*f4+e*f5
+            y = sum(c*f for c, f in zip(self.retaincoeffs[min(card,7)], feats))
             if y>worsty:  # highest retain-score = most disposable
                 worsty=y
                 worstcard=card
@@ -118,9 +115,6 @@ class PolyPlayer(Player):  # a player who uses a linear model over features to d
             return 1
         if hand[1] == 0:
             return 0
-        a0, b0, c0, d0, e0 = self.retaincoeffs[0]
-        a1, b1, c1, d1, e1 = self.retaincoeffs[1]
-        f1, f2, f3, f4, f5 = feats
-        y0 = a0*f1+b0*f2+c0*f3+d0*f4+e0*f5
-        y1 = a1*f1+b1*f2+c1*f3+d1*f4+e1*f5
+        y0 = sum(c*f for c, f in zip(self.retaincoeffs[0], feats))
+        y1 = sum(c*f for c, f in zip(self.retaincoeffs[1], feats))
         return 1 if y1 > y0 else 0
