@@ -1,6 +1,8 @@
 import random
-
-from numpy.random.mtrand import rand
+seed = random.randint(0,100000)
+# seed = 12794
+random.seed(seed)
+print(f'{seed=}')
 class PublicKnowledge:
     #EK is -1
     #[DEF, NOPE, ATK, SKIP, FVR, SHUF, STF, C1, C2, C3, C4, C5]
@@ -52,15 +54,15 @@ class Player:
             modified[9] = modified[9]//2
             modified[10] = modified[10]//2
             modified[11] = modified[11]//2
-
-        randaction = random.choices([*range(12)]+[-1], weights = modified, k=1)
+        modified.append(1)
+        randaction = random.choices([*range(12)]+[-1], weights = modified, k=1)[0]
 
         if(randaction in {4,7,8,9,10,11}):
             return [randaction, self.playerNum^1]
         else:
             return [randaction, -1]
 
-    def doNope(self,state): #returns y/n if nope, contracts that it will deduct/be honest, currently just random
+    def askNope(self,state): #returns y/n if nope, contracts that it will deduct/be honest, currently just random
         if(state.hands[self.playerNum][1] == 0):
             return False
         return random.random() < 0.5 #half chance you actually use the move, just for Proof of concept
@@ -68,6 +70,9 @@ class Player:
     def gotFavored(self, state): #how else do you resolve a favor, you tell them which card you're giving away
         randcard = random.choices([*range(12)], weights=state.hands[self.playerNum], k=1)[0]
         return randcard
+
+    def reinsertEK(self, state): #at which point in the deck would you return a EK
+        return random.randint(0,state.pk.deckSize)
 
 
 def dealGame():
@@ -95,21 +100,81 @@ def dealGame():
 
 def run_game(state, player1, player2):
     while(state.pk.deckSize > 0):
-        move = ([player1, player2][state.curPlayer]).chooseAction(state)
+        me = [player1,player2][state.curPlayer]
+        opp = [player1,player2][state.curPlayer^1]
+        move = me.chooseAction(state)
+        print(state.hands[0], state.hands[1], move, state.deck)
+        assert sum(state.hands[0]) == state.pk.playerSizes[0], f"P0 hand/size mismatch: {state.hands[0]} vs {state.pk.playerSizes[0]}"
+        assert sum(state.hands[1]) == state.pk.playerSizes[1], f"P1 hand/size mismatch: {state.hands[1]} vs {state.pk.playerSizes[1]}"
+
+
+        #noping logic should be here
+        state.pendingStack.append(move)
+        playertonope = state.curPlayer^1
+        while(([player1,player2][playertonope]).askNope(state)):
+            state.hands[playertonope][1] -= 1
+            state.pk.playerSizes[playertonope] -= 1
+            state.pk.discardFreq[1] += 1
+            playertonope ^= 1
+            state.pendingStack.append(move)
+
+        #if the nopes actually went through and noped
+        if(len(state.pendingStack)%2==0):
+            state.pendingStack = []
+            continue
+        else:
+            state.pendingStack = []
+
+        if(move[0]!=-1):
+            state.hands[state.curPlayer][move[0]] -= 1
+            state.pk.playerSizes[state.curPlayer] -= 1
+            state.pk.discardFreq[move[0]] += 1
 
         if(move[0]==-1):
             #draw
-            pass
+            drawn = state.deck[-1]
+            state.deck.pop()
+            state.pk.deckSize = len(state.deck)
+            if(drawn != -1):
+                state.pk.playerSizes[state.curPlayer] += 1
+                state.hands[state.curPlayer][drawn] += 1
+            else:
+                if(state.hands[state.curPlayer][0] > 0):
+                    state.hands[state.curPlayer][0] -= 1
+                    state.pk.playerSizes[state.curPlayer] -= 1
+                    state.pk.discardFreq[0] += 1
+                    nextpos = me.reinsertEK(state)
+                    state.deck.insert(nextpos, -1)
+                    state.pk.deckSize = len(state.deck)
+                    state.pk.deckEpoch += 1
+                else:
+                    return state.curPlayer^1
+            state.turnsLeft -= 1
+            if(state.turnsLeft == 0):
+                state.curPlayer^=1
+                state.turnsLeft = 1
+                continue
         elif(move[0]==2):
             #attack
             state.curPlayer ^= 1
-            state.turnsLeft = 2
+            if(state.turnsLeft == 1): #add one turn if draw one card, else stacking rule applie
+                state.turnsLeft = 2
+            else:
+                state.turnsLeft += 2
         elif(move[0]==3):
             #skip
-            state.curPlayer ^= 1
+            state.turnsLeft -= 1
+            if(state.turnsLeft == 0):
+                state.curPlayer^=1
+                state.turnsLeft = 1
+                continue
         elif(move[0]==4):
             #favor
-            pass
+            cardgiven = opp.gotFavored(state)
+            state.pk.playerSizes[state.curPlayer^1] -= 1
+            state.pk.playerSizes[state.curPlayer] += 1
+            state.hands[state.curPlayer^1][cardgiven] -= 1
+            state.hands[state.curPlayer][cardgiven] += 1
         elif(move[0]==5):
             #shuffle
             random.shuffle(state.deck)
@@ -120,11 +185,13 @@ def run_game(state, player1, player2):
             state.stfKnowledge[state.curPlayer] = stfobject
         else:
             #cat card
-            pass
+            cardgiven = random.choices([*range(12)], weights=state.hands[state.curPlayer^1], k=1)[0]
+            state.pk.playerSizes[state.curPlayer^1] -= 1
+            state.pk.playerSizes[state.curPlayer] += 1
+            state.hands[state.curPlayer^1][cardgiven] -= 1
+            state.hands[state.curPlayer][cardgiven] += 1
 
-
-
-def main():
+def setupGame():
     p1hand, p2hand, deck, pk = dealGame()
     state = GameState()
     state.hands = [p1hand, p2hand]
@@ -132,6 +199,11 @@ def main():
     state.pk = pk
     player1 = Player(0)
     player2 = Player(1)
-    run_game(state,player1,player2)
+    return (state, player1, player2)
+
+def main():
+    for _ in range(100):
+        states = setupGame()
+        print(run_game(*states))
 
 main()
