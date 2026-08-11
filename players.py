@@ -1,5 +1,5 @@
 import random
-
+import math
 
 class Player: #a player that acts entirely randomly
     def __init__(self, playerNum):
@@ -46,36 +46,45 @@ class Player: #a player that acts entirely randomly
         return random.randint(0,state.pk.deckSize)
 
 
-class PolyPlayer(Player): #a player who uses polynomials to determine best card fit
+class PolyPlayer(Player):  # a player who uses a linear model over features to determine best card fit
     def __init__(self, playerNum, coeffs, drawcoeffs):
         super().__init__(playerNum)
         self.coeffs = coeffs
         self.drawcoeffs = drawcoeffs
-
     def getFeatures(self, deckSize, oppHandSize):
         x = deckSize/17
         oppnorm = oppHandSize/15
-        return [1,x,x*x,oppnorm,x*oppnorm]
-
+        return [1, x, x*x, oppnorm, x*oppnorm]
     def chooseAction(self, state):
         hand = state.hands[self.playerNum]
-        x = state.pk.deckSize #current x value
+        deckSize = state.pk.deckSize
+        oppHandSize = state.pk.playerSizes[self.playerNum ^ 1]
+        feats = self.getFeatures(deckSize, oppHandSize)
         bestcard = -1
         besty = float('inf')
         for card in range(12):
-            if hand[card] == 0 or card==0 or card==1: #do not use a card you cannot use
+            if hand[card] == 0 or card == 0 or card == 1:  # do not use a card you cannot use
                 continue
-            if card in (4,7,8,9,10,11) and state.pk.playerSizes[self.playerNum^1] == 0: #do not use a card you should not use
+            if card in (4,7,8,9,10,11) and oppHandSize == 0:  # do not use a card you should not use
                 continue
-            a, b, c, d, e = self.coeffs[card]
-
-            oppnorm = state.pk.playerSizes[self.playerNum^1]
-            y = a + b*x + c*x*x + d*oppnorm + e*x*oppnorm
+            a, b, c, d, e = self.coeffs[min(card,7)]
+            f1, f2, f3, f4, f5 = feats
+            y = a*f1+b*f2+c*f3+d*f4+e*f5
             if y < besty:
                 besty = y
                 bestcard = card
-
-        if bestcard == -1:
+        drawy = sum(c*f for c, f in zip(self.drawcoeffs, feats))
+        if bestcard == -1 or drawy < besty:
             return [-1, -1]  # draw
-        target = self.playerNum^1 if bestcard in (4,7,8,9,10,11) else -1
+        target = self.playerNum ^ 1 if bestcard in (4,7,8,9,10,11) else -1
         return [bestcard, target]
+    def askNope(self, state):
+        if state.hands[self.playerNum][1] == 0:
+            return False
+        deckSize = state.pk.deckSize
+        oppHandSize = state.pk.playerSizes[self.playerNum ^ 1]
+        feats = self.getFeatures(deckSize, oppHandSize)
+        y = sum(c*f for c, f in zip(self.coeffs[1], feats))
+        y = max(-500.0, min(500.0, y))  # clip before exponentiating to avoid overflow
+        p = 1/(1+math.exp(y))
+        return random.random() < p

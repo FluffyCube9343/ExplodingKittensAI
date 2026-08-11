@@ -216,6 +216,6 @@ if __name__=='__main__':
     # seed = 12794
     random.seed(seed)
     print(f'{seed=}')
-    coeffs = [[random.random() for i in range(3)] for j in range(12)]
-    drawcoeffs = [random.random() for i in range(3)]
+    coeffs = [[random.random() for i in range(5)] for j in range(8)]
+    drawcoeffs = [random.random() for i in range(5)]
     main(coeffs,drawcoeffs)
