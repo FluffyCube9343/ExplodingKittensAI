@@ -3,7 +3,7 @@ import time
 from players import *
 from bestparams import *
 
-
+#
 def initrandom(seed):
     random.seed(seed)
 

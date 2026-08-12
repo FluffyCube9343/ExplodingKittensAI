@@ -7,7 +7,7 @@ CLIPSIZE = 5
 FEATURES = 17
 GENOMESIZE = 17*FEATURES  #8 play coeffs + 8 retain coeffs + one for draw
 
-
+#
 def getRandGenome():
     return np.random.uniform(-1,1,size=GENOMESIZE)
 

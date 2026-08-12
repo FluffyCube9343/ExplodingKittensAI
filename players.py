@@ -1,6 +1,6 @@
 import random
 import math
-
+#
 class Player: #a player that acts entirely randomly
     def __init__(self, playerNum):
         self.playerNum = playerNum
