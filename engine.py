@@ -199,7 +199,7 @@ def setupGame(coeffs,drawcoeffs,retaincoeffs):
     state.pk = pk
 
     # player1 = Player(0)
-    # player2 = PolyPlayer(1, coeffs)
+    # player2 = PolyPlayer(1, coeffs, drawcoeffs, retaincoeffs)
     player1 = PolyPlayer(0, coeffs, drawcoeffs, retaincoeffs)
     player2 = Player(1)
     return (state, player1, player2)
@@ -224,9 +224,9 @@ if __name__=='__main__':
     # seed = 12794
     random.seed(seed)
     print(f'{seed=}')
-    coeffs = bestcoeffs2
-    drawcoeffs = bestdrawcoeffs2
-    retaincoeffs = bestretaincoeffs2
+    coeffs = bestcoeffs3
+    drawcoeffs = bestdrawcoeffs3
+    retaincoeffs = bestretaincoeffs3
     # coeffs = [[random.random() for i in range(5)] for j in range(8)]
     # drawcoeffs = [random.random() for i in range(5)]
     # retaincoeffs = [[random.random() for i in range(5)] for j in range(8)]
