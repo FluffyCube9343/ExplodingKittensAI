@@ -164,7 +164,9 @@ def run_game(state, player1, player2):
                 state.hands[state.curPlayer^1][cardgiven] -= 1
                 state.hands[state.curPlayer][cardgiven] += 1
 
-def evaluate(coeffs, drawcoeffs, retaincoeffs, oppcoeffs=None, oppdrawcoeffs=None, oppretaincoeffs=None, ngames=10000):
+def evaluate(coeffs, drawcoeffs, retaincoeffs, oppcoeffs=None, oppdrawcoeffs=None, oppretaincoeffs=None, ngames=10000, seed=None):
+    if(seed is not None):
+        random.seed(seed)
     wins = 0
     for _ in range(ngames):
         p1hand, p2hand, deck, pk = dealGame()
@@ -222,9 +224,9 @@ if __name__=='__main__':
     # seed = 12794
     random.seed(seed)
     print(f'{seed=}')
-    coeffs = bestcoeffs
-    drawcoeffs = bestdrawcoeffs
-    retaincoeffs = bestretaincoeffs
+    coeffs = bestcoeffs2
+    drawcoeffs = bestdrawcoeffs2
+    retaincoeffs = bestretaincoeffs2
     # coeffs = [[random.random() for i in range(5)] for j in range(8)]
     # drawcoeffs = [random.random() for i in range(5)]
     # retaincoeffs = [[random.random() for i in range(5)] for j in range(8)]

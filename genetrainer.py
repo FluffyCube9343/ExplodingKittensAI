@@ -22,6 +22,9 @@ def getParams(genome):
 def crossover(parent1, parent2):
     mask = np.random.random(GENOMESIZE)<0.5
     return np.where(mask, parent1, parent2)
+    #I have an idea
+    # mask = np.random.normal()+0.5
+    # return parent1*mask + parent2*(1-mask)
 
 
 def mutate(genome, rate=0.15, strength=.3):
@@ -31,9 +34,9 @@ def mutate(genome, rate=0.15, strength=.3):
     return np.clip(child, -CLIPSIZE, CLIPSIZE)
 
 
-def fitness(genome, gamesPerGenome):
+def fitness(genome, gamesPerGenome, seed):
     playercoeffs, playerdrawcoeffs, playerretaincoeffs = getParams(genome)
-    random_score = evaluate(playercoeffs, playerdrawcoeffs, playerretaincoeffs, ngames=gamesPerGenome)
+    random_score = evaluate(playercoeffs, playerdrawcoeffs, playerretaincoeffs, ngames=gamesPerGenome, seed=seed)
     return random_score
 
 
@@ -57,16 +60,22 @@ def main(popsize=20, generations=20, hofsize=10, hofsample=4, gamesPerGenome=100
     for gen in range(generations):
         start = time.time()
 
+        #fixed seed for THIS generation -- every genome sees the same deals,
+        #so score differences reflect genome quality instead of luck
+        gen_seed = random.randint(0,10_000_000)
+
         scores = []
         for genome in population:
-            score = fitness(genome, gamesPerGenome)
+            score = fitness(genome, gamesPerGenome, gen_seed)
             scores.append((score,genome))
         scores.sort(key=lambda x:x[0], reverse=True)
         best_random = scores[0][0]
         meanscore = float(np.mean([s[0] for s in scores]))
         diversity = getDiversity(population)
 
-        #separate eval: best genome vs HoF
+        #separate eval: best genome vs HoF, on its OWN fixed seed (not gen_seed,
+        #so we're not just re-measuring the exact games used for selection)
+        eval_seed = random.randint(0,10_000_000)
         best_genome = scores[0][1]
         best_coeffs, best_drawcoeffs, best_retaincoeffs = getParams(best_genome)
         pool_eval = random.sample(hof, min(hofsample, len(hof)))
@@ -76,7 +85,7 @@ def main(popsize=20, generations=20, hofsize=10, hofsample=4, gamesPerGenome=100
             oppcoeffs, oppdrawcoeffs, oppretaincoeffs = getParams(oppgenome)
             best_vs_hof += evaluate(best_coeffs, best_drawcoeffs, best_retaincoeffs,
                                    oppcoeffs=oppcoeffs, oppdrawcoeffs=oppdrawcoeffs, oppretaincoeffs=oppretaincoeffs,
-                                   ngames=gamesPerGenome)
+                                   ngames=gamesPerGenome, seed=eval_seed)
         best_vs_hof /= len(pool_eval)
 
         history.append((gen, best_random, meanscore, diversity, best_vs_hof, best_random))
@@ -100,10 +109,12 @@ def main(popsize=20, generations=20, hofsize=10, hofsample=4, gamesPerGenome=100
             nextgen.append(child)
         population = nextgen
 
-    #after training loop, eval against random
+    #after training loop, eval against random on a FRESH held-out seed --
+    #never used for any selection decision during training
+    final_seed = random.randint(0,10_000_000)
     finalscores = []
     for genome in population:
-        score = fitness(genome, gamesPerGenome)
+        score = fitness(genome, gamesPerGenome, final_seed)
         finalscores.append((score, genome))
     finalscores.sort(key=lambda x:x[0],reverse=True)
     bestscore, bestgenome = finalscores[0]
