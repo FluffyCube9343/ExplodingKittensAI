@@ -118,3 +118,6 @@ class PolyPlayer(Player):  # a player who uses a linear model over features to d
         y0 = sum(c*f for c, f in zip(self.retaincoeffs[0], feats))
         y1 = sum(c*f for c, f in zip(self.retaincoeffs[1], feats))
         return 1 if y1 > y0 else 0
+
+    def reinsertEK(self, state): #at which point in the deck would you return a EK
+        return min(3,state.pk.deckSize)
