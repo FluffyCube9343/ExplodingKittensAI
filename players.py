@@ -45,6 +45,12 @@ class Player: #a player that acts entirely randomly
     def reinsertEK(self, state): #at which point in the deck would you return a EK
         return random.randint(0,state.pk.deckSize)
 
+class EKKnowledge:
+    def __init__(self, deckSize, drawsUntilEK, epoch):
+        self.deckSize = deckSize  # pk.deckSize right after we reinserted
+        self.drawsUntilEK = drawsUntilEK # do we know how far down the EK is
+        self.epoch = epoch # deckEpoch this knowledge is valid for
+
 
 class PolyPlayer(Player):  # a player who uses a linear model over features to determine best card fit
     def __init__(self, playerNum, coeffs, drawcoeffs, retaincoeffs):
@@ -52,16 +58,35 @@ class PolyPlayer(Player):  # a player who uses a linear model over features to d
         self.coeffs = coeffs
         self.drawcoeffs = drawcoeffs
         self.retaincoeffs = retaincoeffs
+        self.ekk = None # do we know where we placed the EK at or nah
+
     def getFeatures(self, deckSize, oppHandSize, discardFreq):
         x = deckSize/17
         oppnorm = oppHandSize/15
         discard_norm = [discardFreq[i]/4 for i in range(12)]
         return [1, x, x*x, oppnorm, x*oppnorm] + discard_norm
+
+    def getKnownEKDistance(self, state):
+        ek = self.ekk
+        if ek is None or ek.epoch != state.pk.deckEpoch:
+            return None  # welp our information isn't valid
+        cardsDrawnSinceInsert = ek.deckSize - state.pk.deckSize
+        remaining = ek.drawsUntilEK - cardsDrawnSinceInsert
+        if remaining < 0:
+            return None  # welp this means we dont know where the EK is at since it already passed our window
+        return remaining
+
     def chooseAction(self, state):
         hand = state.hands[self.playerNum]
         deckSize = state.pk.deckSize
         oppHandSize = state.pk.playerSizes[self.playerNum ^ 1]
         feats = self.getFeatures(deckSize, oppHandSize, state.pk.discardFreq)
+
+        # if the EK at the top or nah, or do we know actually for sure we know it is safe
+        ekDistance = self.getKnownEKDistance(state)
+        topIsKnownEK = (ekDistance == 0)
+        topIsKnownSafe = (ekDistance is not None and ekDistance > 0)
+
         bestcard = -1
         besty = float('inf')
         for card in range(12):
@@ -75,6 +100,18 @@ class PolyPlayer(Player):  # a player who uses a linear model over features to d
             if y < besty:
                 besty = y
                 bestcard = card
+
+        if topIsKnownEK:
+            if bestcard == -1: # welp thats a forced draw
+                return [-1, -1]
+            target = self.playerNum ^ 1 if bestcard in (4,7,8,9,10,11) else -1
+            return [bestcard, target]
+
+        if topIsKnownSafe:
+            # if it is not EK then always take it (can only help you).
+            return [-1, -1]
+
+        # no info on top card means we are back to normal tactics.
         drawy = sum(c*f for c, f in zip(self.drawcoeffs, feats))
         if bestcard == -1 or drawy < besty:
             return [-1, -1]  # draw
@@ -119,5 +156,13 @@ class PolyPlayer(Player):  # a player who uses a linear model over features to d
         y1 = sum(c*f for c, f in zip(self.retaincoeffs[1], feats))
         return 1 if y1 > y0 else 0
 
-    def reinsertEK(self, state): #at which point in the deck would you return a EK
-        return min(3,state.pk.deckSize)
+    def reinsertEK(self, state):  # at which point in the deck would you return a EK
+        deckSize = state.pk.deckSize
+        pos = min(1, deckSize) #in reality, i could improve this, but for now it's just whatever.
+        # if im playing against a strategy thats suspicious, then sure, i should probably put this lower down the deck so a STF
+        # cannot see it, (e.g. position 5), but for now this shall do since it's just trying to show that
+        # i have a strategy that can beat my random opponent that is better than a hand-derived heuristic.
+        drawsUntilEK = deckSize - pos
+        self.ekk = EKKnowledge(deckSize + 1, drawsUntilEK, state.pk.deckEpoch + 1) #keep track of where we placed the exploding kitten!!!
+        #+ 1 is due to the EK being added
+        return pos
