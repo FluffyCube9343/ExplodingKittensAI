@@ -73,9 +73,11 @@ Currently the approach is to initialize 17 functions of 17 parameters. 9 functio
 
 I might try exploring a few more robust strategies that may not necessarily have the best winrate against a random opponent, but have decent winrates against the other strategies. The problem was the only testing I could do was with previous evolved strategies, which isn't particularly representative of global Exploding Kittens strategies.
 
-**Winrate: ~95%**
+**Winrate: ~98%**
 
 Note: I also **heavily overhauled** the engine to be as intuitive and bug-free as possible for potential future development. Yes, it's not as fast as `monte4`, but will do for now. Also exceptionally fast code isn't as required for an evolutionary algorithm as it is for a Monte Carlo Tree Search.
+
+Also note: The win rate is due to (1) immediate exploding kitten placement and (2) avoiding the exploding kitten, given that you probably know where it's at (unless the opponent plays a shuffle move in the time). This could definitely be fine tuned, particularly against opponent strategies that are suspicious of card placement (e.g. if I place an exploding kitten literally the next card, which I do, then the opponent uses a see the future).
 
 Other note: I hardcoded a few parameters, like where to place an exploding kitten. 
 
